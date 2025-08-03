@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Metrorail | Schedule</title>
+  <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+
+  <!-- ── Top Navigation Bar ─────────────────────────── -->
+ <header class="topbar">
+    <div class="logo">
+      <img src="logo.png" alt="Metrorail logo" />
+    </div>
+
+    <nav class="main-nav">
+      <a href="#home">ROUTE MAP</a>
+      <a href="#schedule">SCHEDULE</a>
+      <a href="#faq">FAQ</a>
+      <a href="#travelrules">TRAVEL RULES</a>
+    </nav>
+
+    <button class="account-btn">
+      <span class="icon">👤</span> Account
+    </button>
+  </header>
+
+  <!-- ── Main Content Area ──────────────────────────── -->
+  <main>
+    
+	<!-- Replace the existing home section with this -->
+<section id="home" class="page">
+  <div class="header">
+    <div class="date-time" id="currentDateTime"></div>
+    <hr>
+  </div>
+  
+  <div class="content-container">
+    <div class="ticket-container">
+      <div class="ticket-box origin-box">
+        <div class="info-section">
+          <h3>ORIGIN:</h3>
+          <p id="origin">Saulsville</p>
+        </div>
+        <div class="info-section">
+          <h3>DESTINATION:</h3>
+          <p id="destination">Pretoria</p>
+        </div>
+      </div>
+      
+      <div class="ticket-box details-box">
+        <div class="info-section">
+          <h3>DATE & TIME:</h3>
+          <p id="currentDateTimeCompact"></p>
+        </div>
+        <div class="info-section">
+          <h3>Trip Cost</h3>
+          <p id="tripCost">R5,50</p>
+        </div>
+        <div class="info-section">
+          <h3>STATUS:</h3>
+          <p>Train Leaving in <span class="countdown" id="countdown"></span></p>
+        </div>
+      </div>
+      
+      <div class="ticket-box purchase-box">
+        <h2>PURCHASE TICKET</h2>
+        <div class="slideshow">
+          <img src="sa.png" style="width: 50%; height: 100%;">
+        </div>
+      </div>
+    </div>
+    
+    <div class="map-container">
+      <div id="map" style="width: 100%; height: 100%;"></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Replace the existing schedule section with this: -->
+<section id="schedule" class="page">
+  <div class="container">
+    <h1>Metrorail Schedule</h1>
+    <h2>Available Routes</h2>
+    
+    <div class="alerts-container">
+      <div class="alert-box real-time-updates">
+        <h3>Real-Time Updates</h3>
+        <div id="realTimeUpdate">All trains running on time</div>
+      </div>
+      <div class="alert-box passenger-info">
+        <h3>Passenger Information</h3>
+        <div id="passengerAlert">No alerts at this time</div>
+      </div>
+      <div class="alert-box safety-info">
+        <h3>Safety & Security</h3>
+        <div id="safetyAlert">All systems operational</div>
+      </div>
+    </div>
+
+    <div class="route-selector">
+      <select id="routeSelect">
+        <option value="all">All Routes</option>
+        <option value="saulsville-pretoria">Saulsville → Pretoria</option>
+        <option value="pretoria-saulsville">Pretoria → Saulsville</option>
+        <option value="dewildt-pretoria">De Wildt → Pretoria</option>
+        <option value="pretoria-dewildt">Pretoria → De Wildt</option>
+      </select>
+    </div>
+
+    <table id="trainSchedule">
+      <thead>
+        <tr>
+          <th>Train Number</th>
+          <th>Route</th>
+          <th>Departure Time</th>
+          <th>Arrival Time</th>
+          <th>Status</th>
+          <th>Fare</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Train data will be populated here by JavaScript -->
+      </tbody>
+    </table>
+
+    <div class="map-section">
+      <h3>Route Map</h3>
+      <div id="scheduleMap" style="height: 400px; width: 100%;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Add the new FAQ section: -->
+<section id="faq" class="page">
+  <div class="faq-container">
+    <h1>Frequently Asked Questions</h1>
+    
+    <div class="search-container">
+      <input type="text" id="faqSearch" placeholder="Search FAQs...">
+      <button id="searchButton"><i class="fas fa-search"></i> Search</button>
+    </div>
+    
+    <div class="faq-categories">
+      <button class="category-btn active" data-category="all">All Questions</button>
+      <button class="category-btn" data-category="ticketing">Ticketing</button>
+      <button class="category-btn" data-category="safety">Safety</button>
+      <button class="category-btn" data-category="schedule">Schedule</button>
+      <button class="category-btn" data-category="accessibility">Accessibility</button>
+    </div>
+    
+    <div class="faq-accordion" id="faqAccordion"></div>
+    
+    <div class="contact-support">
+      <h2>Didn't find your answer?</h2>
+      <p>Contact our customer support team:</p>
+      <div class="contact-methods">
+        <div class="contact-method">
+          <i class="fas fa-phone"></i>
+          <p><strong>Phone:</strong> 081 411 6588</p>
+        </div>
+        <div class="contact-method">
+          <i class="fas fa-envelope"></i>
+          <p><strong>Email:</strong> support@metrorail.co.za</p>
+        </div>
+        <div class="contact-method">
+          <i class="fas fa-comment-alt"></i>
+          <p><strong>Live Chat:</strong> Available 6am-10pm</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+	<section id="travelrules" class = "page hidden focus-layout">
+
+	
+    <h1>METRORAIL RULES AND REGULATIONS</h1>
+
+  <p class="discription">
+    The following points represents the rules of Metrorail that should be followed by passengers a failure to follow these rules shall result in prosecution or fine.Please read through these guidelines with understanding or report to your fellow officer for any assistance.
+  </p>
+
+  <fieldset>
+    <legend>Rules</legend>
+    <p class="rules">
+      <ul>
+        <h2>DO:</h2>
+        <li><strong>Use headphones:</strong>Keep the noise from personal audio and video devices at a level that doesn't disturb other passengers.</li>
+        <li><strong>Board and exit properly:</strong>Allow passengers to exit the train befoere you attempt to board.Stand back from the platform edge especially when the train is arriving.</li>
+        <li><strong>Be considerate:</strong>Offer your seat to those who need it more,such as senior citizens or people with disabilities.Be mindful of others and thier space.</li>
+        <li><strong>Dispose of waste properly:</strong>Use designated bins for trash and recycling.</li>
+        <li><strong>Follow instructions:</strong>Pay attention to announcements and instructions from the Metrorail staff or security personnel.</li>
+        <li><strong>Report unattended packages:</strong>Alert a transit police officer, station manager if you see any unattended packages.</li>
+        <li><strong>Maitain calm in emergencies:</strong>Follow instructions and try to remains calm during emergencies.</li>
+        <li><strong>Mind the gap:</strong>Be mindful of the gap between the train door and the platform edge when entering or exiting.</li>
+      </ul>
+      <ul>
+        <h2>DON'T DO:</h2>
+        <li><strong>Eat,drink,smoke or litter:</strong>These actions are not permitted on Metrorail trains or in stations. </li>
+        <li><strong>Obstruct train doors:</strong>Do not try to block or force train doors open.</li>
+        <li><strong>Touch train doors:</strong>Avoid touching the train doors while they are opening or closing.</li>
+        <li><strong>Lean against train doors:</strong>This is a safety hazard and is not allowed.</li>
+        <li><strong>Run in the station:</strong>Running is not permitted in the station area.</li>
+        <li><strong>Sit on the platform edge</strong>This is dangerous and is not permitted.</li>
+        <li><strong>Walk on the trackbed:</strong>Walking on the trackbed is strictly prohibited.</li>
+      </ul>
+  </p></fieldset>
+
+	</section>
+
+
+	<section id="about" class = "page hidden">
+		
+			 <div class="about-content">
+        <div class="about-section">
+            <h2>About Metrorail</h2>
+            <p>Metrorail has been serving the community since 1990, providing safe, reliable, and affordable rail transportation across the region.</p>
+        </div>
+        
+        <div class="about-section">
+            <h2>Our Mission</h2>
+            <ul>
+                <li>Punctual and reliable</li>
+                <li>Safe and secure</li>
+                <li>Environmentally friendly</li>
+            </ul>
+        </div>
+        
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-number">60+</div>
+                <div>Daily Trips</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">1M+</div>
+                <div>Monthly Passengers</div>
+            </div>
+        </div>
+        
+        <div class="about-section">
+            <h2>Our Team</h2>
+            <div class="team-grid" id="teamMembers">
+    <div class="team-member">
+        <img src="TSHEPO.jpg" alt="Tshepo - Station Manager">
+        <h3>Tshepo</h3>
+        <p>Station Manager</p>
+    </div>
+    <div class="team-member">
+        <img src="Oageng.jpg" alt="Lerato - Operations Director">
+        <h3>Oageng</h3>
+        <p>Operations Director</p>
+    </div>
+    <div class="team-member">
+        <img src="kg.jpg" alt="James - Safety Officer">
+        <h3>Kagiso</h3>
+        <p>Safety Officer</p>
+    </div>
+    <div class="team-member">
+        <img src="AUDREY.jpg" alt="Nomsa - Customer Service">
+        <h3>Audrey</h3>
+        <p>Customer Service</p>
+    </div>
+
+    </div>
+
+</div>
+        </div>
+        
+        <div class="about-section">
+            <h2>Contact Us</h2>
+            <p><strong>Phone:</strong> 081 411 6588</p>
+            <p><strong>Email:</strong> info@metrorail.co.za</p>
+        </div>
+    </div>
+    
+  
+
+
+	</section>
+
+
+	<section id="contact" class = "page hidden focus-layout">
+
+
+  <div class="contact-form-container">
+    <h2>Contact Us</h2>
+    <form action="#" method="post" class="contact-form">
+      <label for="name">Full Name *</label>
+      <input type="text" id="name" name="name" required placeholder="Your full name" />
+
+      <label for="email">Email Address *</label>
+      <input type="email" id="email" name="email" required placeholder="you@example.com" />
+
+      <label for="phone">Phone Number (Optional)</label>
+      <input type="tel" id="phone" name="phone" placeholder="e.g. 081 234 5678" />
+
+      <label for="message">Message *</label>
+      <textarea id="message" name="message" required placeholder="Your message here..." rows="5"></textarea>
+
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
+
+
+
+
+	</section>
+
+
+	<section id ="TsCs" class = "page hidden focus-layout">
+			<h1> <strong> MetroRail Terms & Conditions </strong> </h1>
+				<section>
+    <h2>1. Introduction</h2>
+    <p>
+      Welcome to <strong>Metro Rail</strong>. By using this website, mobile application, or any other service provided by <strong>Metro Rail</strong>, you agree to abide by the following Terms and Conditions. These terms govern your access to and use of all <strong>Metro Rail</strong> services, including purchasing tickets, checking schedules, and using our trains.
+    </p>
+  </section>
+
+  <section>
+    <h2>2. Ticketing and Reservations</h2>
+    <ul>
+      <li>Tickets must be purchased prior to boarding a <strong>Metro Rail</strong> train unless otherwise stated.</li>
+      <li>All fares are subject to change without notice.</li>
+      <li>Tickets are non-transferable and must be used by the individual named or encoded on the ticket.</li>
+      <li>Lost, stolen, or damaged tickets will not be replaced unless proven with valid purchase proof.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>3. Passenger Conduct</h2>
+    <p>
+      To ensure safety and comfort for all passengers:
+    </p>
+    <ul>
+      <li>No smoking, alcohol consumption, or illegal drug use is permitted on any <strong>Metro Rail</strong> property.</li>
+      <li>Abusive, disruptive, or violent behavior will not be tolerated and may result in removal from the train and legal consequences.</li>
+      <li>Audio devices must be used with headphones to avoid disturbing others.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>4. Schedules and Delays</h2>
+    <p>
+      <strong>Metro Rail</strong> makes every effort to maintain published schedules. However, delays may occur due to weather, technical issues, or other unforeseen circumstances.
+    </p>
+    <ul>
+      <li><strong>Metro Rail</strong> is not liable for missed connections, appointments, or any indirect losses due to delays.</li>
+      <li>We recommend arriving at least 15 minutes prior to scheduled departure.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>5. Safety and Security</h2>
+    <ul>
+      <li>All passengers are subject to security screening.</li>
+      <li>Baggage must be within the size and weight limits set by <strong>Metro Rail</strong>.</li>
+      <li>Items deemed dangerous or prohibited (e.g., explosives, flammable substances) are not allowed on board.</li>
+      <li>Emergency exits must be kept clear at all times.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. Privacy Policy</h2>
+    <p>
+      <strong>Metro Rail</strong> collects certain personal information to process bookings and improve service. We do not sell your information to third parties.
+    </p>
+    <ul>
+      <li>Data is stored securely and used in accordance with data protection laws.</li>
+      <li>You may opt out of marketing communications at any time.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. Refund and Cancellation</h2>
+    <ul>
+      <li>Refunds are only provided for tickets canceled within the allowable window as specified in the booking terms.</li>
+      <li>Service fees may be deducted from refund amounts.</li>
+      <li>No refund will be issued for missed trains due to late arrival.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>8. Accessibility</h2>
+    <p>
+      <strong>Metro Rail</strong> is committed to accessibility. Special assistance is available for the elderly, people with disabilities, and pregnant women.
+    </p>
+    <ul>
+      <li>Please notify us in advance for any special requirements.</li>
+      <li>Designated seating and boarding areas are available at most stations.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>9. Modification of Terms</h2>
+    <p>
+      <strong>Metro Rail</strong> reserves the right to change these Terms and Conditions at any time without prior notice. It is your responsibility to review them regularly.
+    </p>
+  </section>
+
+  <section>
+    <h2>10. Governing Law</h2>
+    <p>
+      These Terms and Conditions are governed by the laws of the Republic of South Africa. Any disputes shall be resolved in the appropriate South African courts.
+    </p>
+  </section>
+
+	</section>
+
+  </main>
+
+  <!-- Bell icon -->
+  <div class="notif-bell">
+    🔔<span class="badge">1</span>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────── -->
+  <footer>
+    <span>&copy; Metrorail 2025</span>
+    <nav>
+      <a href="#about">About</a>
+      <a href="#contact">Contact Us</a>
+      <a href="#TsCs">Ts & Cs</a>
+    </nav>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
