@@ -632,13 +632,6 @@ main {
 }
 
 
-
-
-
-
-
-
-
 /* Add these new styles for the enhanced schedule and FAQ sections */
 
 /* Schedule Page Specific Styles */
@@ -876,4 +869,21 @@ main {
     .faq-categories {
         justify-content: center;
     }
+}
+
+.slideshow { 
+  width: 400px;
+  height: 300px;
+  overflow: hidden;
+  /*max-width: 500px; */
+  position: relative;
+  margin: auto;
+}
+
+.slide {
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  width: 100%;
+  border-radius: 8px;
 }
