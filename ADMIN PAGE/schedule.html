@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  
+  <title>Admin Panel – Schedule</title>
+  <link rel="stylesheet" href="cascading stylesheet/schedule.css"/>
+  <link rel="javascript" href="javascript/schedule.js"/>
+  <link rel="stylesheet" href="cascading stylesheet/styles.css"/>
+
+</head>
+<body>
+ <div class="container">
+    <aside class="sidebar">
+      <div class="brand">🚆 Metrorail Admin</div>
+      <p class="status">🟢 System Operational</p>
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="schedule.html" class="active">Schedule Management</a>
+        <a href="notification.html" >Notifications</a>
+        <a href="station.html">Station Management</a>
+        <a href="user management.html">User Management</a>
+        <a href="system-settings.html">System Settings</a>
+      </nav>
+      <div class="logout">
+        <p>👤 Administrator</p>
+        <button>Logout</button>
+      </div>
+    </aside>
+
+    <main class="schedule">
+      <header>
+        <input type="search" placeholder="Search schedule...">
+        <div class="user-info">
+          <span>🔔</span>
+          <span class="admin-user">👤 Admin User<br><small>Super Administrator</small></span>
+        </div>
+      </header> 
+
+  <h1>Update Train Schedule</h1>
+  
+  <table id="editTable">
+    <thead>
+      <tr id="trainHeader">
+        <th>Station \ Train No.</th>
+        <!-- Train numbers will be populated by JS -->
+      </tr>
+    </thead>
+    <tbody id="scheduleBody">
+      <!-- Filled by JS -->
+    </tbody>
+  </table>
+  <div style="text-align: center;">
+    <button onclick="saveSchedule()">Save Schedule</button>
+  </div>
+
+ 
+<script src="javascript/schedule.js"></script>
+</body>
+</html>

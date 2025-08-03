@@ -1,0 +1,118 @@
+body {
+  font-family: "Segoe UI", sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+header {
+  background-color: #ffd700;
+  color: #222;
+  padding: 20px 30px;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+  border-bottom: 4px solid #888;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.user-controls {
+  display: flex;
+  justify-content: space-between;
+  margin: 30px 0 20px;
+  padding: 0 10px;
+}
+
+.user-controls input {
+  padding: 10px;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+
+
+
+.user-controls button {
+  padding: 10px 16px;
+  background-color: #ffd700;
+  color: #222;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+.user-controls button:hover {
+  background-color: #e6c200;
+}
+
+.user-table {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.user-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-table th,
+.user-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.user-table th {
+  background-color: #f2f2f2;
+  color: #333;
+  font-weight: 600;
+}
+
+.user-table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.active {
+  color: green;
+  font-weight: bold;
+}
+
+.user-table .edit,
+.user-table .delete {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.user-table .edit {
+  background-color: #ffd700;
+  color: #222;
+}
+
+.user-table .edit:hover {
+  background-color: #e6c200;
+}
+
+.user-table .delete {
+  background-color: #dc3545;
+  color: white;
+}
+
+.user-table .delete:hover {
+  background-color: #bb2d3b;
+}
+
+
+  

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Metrorail Admin Dashboard</title>
+  <link rel="stylesheet" href="cascading stylesheet/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">🚆 Metrorail Admin</div>
+      <p class="status">🟢 System Operational</p>
+      <nav>
+        <a href="index.html" class="active">Dashboard</a>
+        <a href="schedule.html">Schedule Management</a>
+        <a href="Notification.html">Notifications</a>
+        <a href="station.html">Station Management</a>
+        <a href="user management.html">User Management</a>
+        <a href="system-settings.html">System Settings</a>
+      </nav>
+      <div class="logout">
+        <p>👤 Administrator</p>
+        <button>Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard">
+      <header>
+        <input type="search" placeholder="Search..." />
+        <div class="user-info">
+          <span>🔔</span>
+          <span class="admin-user">👤 Admin User<br><small>Super Administrator</small></span>
+        </div>
+      </header>
+
+      <h1>System Dashboard</h1>
+      <div class="cards">
+        <div class="card">
+          <h3>🧍 Daily Passengers</h3>
+          <p class="value">12,456 <span class="up">▲ 5.2%</span></p>
+        </div>
+        <div class="card">
+          <h3>🚉 Active Trains</h3>
+          <p class="value">8/12 <span class="neutral">= 0%</span></p>
+        </div>
+        <div class="card">
+          <h3>⚠️ Active Issues</h3>
+          <p class="value">3 <span class="new">+1 new</span></p>
+        </div>
+        <div class="card">
+          <h3>🔔 Unread Alerts</h3>
+          <p class="value">5 <span class="new">+2 new</span></p>
+        </div>
+      </div>
+
+      <div class="system-section">
+        <div class="system-box">
+          <h3>Recent Alerts</h3>
+          <p>No new alerts.</p>
+        </div>
+       
+      </div>
+
+      <div class="traffic">
+        <h3>Passenger Traffic</h3>
+        <div class="range-buttons">
+          <button onclick="selectRange('24h')">24h</button>
+          <button onclick="selectRange('7d')">7d</button>
+          <button onclick="selectRange('30d')">30d</button>
+        </div>
+        <div id="traffic-chart-container">
+			<canvas id="traffic-chart" width="600" height="300"></canvas>
+		</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="javascript/script.js"></script>
+</body>
+</html>

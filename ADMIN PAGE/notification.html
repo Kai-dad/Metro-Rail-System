@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications | Metrorail Admin</title>
+  <link rel="stylesheet" href="cascading stylesheet/styles.css">
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="brand">🚆 Metrorail Admin</div>
+      <p class="status">🟢 System Operational</p>
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="schedule.html">Schedule Management</a>
+        <a href="notification.html" class="active">Notifications</a>
+        <a href="station.html">Station Management</a>
+        <a href="user management.html">User Management</a>
+        <a href="system-settings.html">System Settings</a>
+      </nav>
+      <div class="logout">
+        <p>👤 Administrator</p>
+        <button>Logout</button>
+      </div>
+    </aside>
+
+    <main class="dashboard">
+      <header>
+        <input type="search" placeholder="Search notifications...">
+        <div class="user-info">
+          <span>🔔</span>
+          <span class="admin-user">👤 Admin User<br><small>Super Administrator</small></span>
+        </div>
+      </header>
+
+      <h1>Notification Center</h1>
+      
+      <div class="notification-actions">
+        <button class="btn-primary" id="new-notification-btn">+ New Notification</button>
+        <div class="notification-filters">
+          <label>Filter:</label>
+          <select id="notification-filter">
+            <option value="all">All Notifications</option>
+            <option value="unread">Unread Only</option>
+            <option value="urgent">Urgent</option>
+            <option value="scheduled">Scheduled</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="notifications-list">
+        <!-- Sample notifications will be loaded here by JavaScript -->
+      </div>
+
+      <!-- New Notification Modal -->
+      <div id="notification-modal" class="modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h2>Create New Notification</h2>
+          <form id="notification-form">
+            <div class="form-group">
+              <label for="notification-type">Type</label>
+              <select id="notification-type" required>
+                <option value="delay">Service Delay</option>
+                <option value="cancellation">Cancellation</option>
+                <option value="alert">Security Alert</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="notification-title">Title</label>
+              <input type="text" id="notification-title" required>
+            </div>
+            <div class="form-group">
+              <label for="notification-message">Message</label>
+              <textarea id="notification-message" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Affected Lines</label>
+              <div class="train-selection">
+                <select id="line-select">
+                  <option value="red">Red Line</option>
+                  <option value="blue">Blue Line</option>
+                  <option value="green">Green Line</option>
+                </select>
+                <button type="button" id="add-line-btn" class="btn-small">Add</button>
+              </div>
+              <div class="selected-items" id="selected-lines"></div>
+            </div>
+            <div class="form-group">
+              <label>Channels</label>
+              <div class="checkbox-group">
+                <label><input type="checkbox" name="channels" value="app" checked> In-App</label>
+                <label><input type="checkbox" name="channels" value="email"> Email</label>
+                <label><input type="checkbox" name="channels" value="sms"> SMS</label>
+                <label><input type="checkbox" name="channels" value="display"> Station Displays</label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Urgency</label>
+              <div class="checkbox-group">
+                <label><input type="radio" name="urgency" value="normal" checked> Normal</label>
+                <label><input type="radio" name="urgency" value="high"> High</label>
+                <label><input type="radio" name="urgency" value="critical"> Critical</label>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+              <button type="submit" class="btn-primary">Send Notification</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="javascript/notifications.js"></script>
+</body>
+</html>

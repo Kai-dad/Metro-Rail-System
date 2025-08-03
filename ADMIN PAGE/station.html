@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Station Management</title>
+  <link rel="stylesheet" href="cascading stylesheet/station.css" />
+  <link rel="stylesheet" href="cascading stylesheet/styles.css"/>
+ 
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">🚆 Metrorail Admin</div>
+      <p class="status">🟢 System Operational</p>
+      <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="schedule.html">Schedule Management</a>
+        <a href="Notification.html">Notifications</a>
+        <a href="station.html" class="active">Station Management</a>
+        <a href="user management.html">User Management</a>
+        <a href="system-settings.html">System Settings</a>
+      </nav>
+      <div class="logout">
+        <p>👤 Administrator</p>
+        <button>Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="station maintenance">
+      <header>
+        <input type="search" placeholder="Search maintenance records..." />
+        <div class="user-info">
+          <span>🔔</span>
+          <span class="admin-user">👤 Admin User<br><small>Super Administrator</small></span>
+        </div>
+      </header>
+
+      <h1>Station & Maintenance Management</h1>
+      
+      <div class="cards">
+        <div class="card">
+          <h3>🔧 Pending Maintenance</h3>
+          <p class="value">8 <span class="up">▲ 2 today</span></p>
+        </div>
+        <div class="card">
+          <h3>⏳ Overdue Tasks</h3>
+          <p class="value">3 <span class="new">+1 new</span></p>
+        </div>
+        <div class="card">
+          <h3>✅ Completed Today</h3>
+          <p class="value">5 <span class="neutral">= yesterday</span></p>
+        </div>
+        <div class="card">
+          <h3>🚆 Trains in Service</h3>
+          <p class="value">9/12 <span class="down">▼ 1</span></p>
+        </div>
+      </div>
+
+      <div class="system-section">
+        <div class="system-box">
+          <h3>Active Maintenance Tasks</h3>
+          <table class="maintenance-table">
+            <thead>
+              <tr>
+                <th>Train ID</th>
+                <th>Maintenance Type</th>
+                <th>Station</th>
+                <th>Scheduled Date</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>MRT-2056</td>
+                <td>Brake Inspection</td>
+                <td>Central Station</td>
+                <td>2023-11-15</td>
+                <td><span class="status-badge status-in-progress">In Progress</span></td>
+                <td>Tech Team A</td>
+                <td class="action-buttons">
+                  <button class="edit-btn">Edit</button>
+                  <button class="complete-btn">Complete</button>
+                </td>
+              </tr>
+              <tr>
+                <td>MRT-1123</td>
+                <td>Electrical Check</td>
+                <td>North Terminal</td>
+                <td>2023-11-10</td>
+                <td><span class="status-badge status-overdue">Overdue</span></td>
+                <td>Tech Team B</td>
+                <td class="action-buttons">
+                  <button class="edit-btn">Edit</button>
+                  <button class="complete-btn">Complete</button>
+                </td>
+              </tr>
+              <tr>
+                <td>MRT-3089</td>
+                <td>Routine Cleaning</td>
+                <td>West Station</td>
+                <td>2023-11-18</td>
+                <td><span class="status-badge status-scheduled">Scheduled</span></td>
+                <td>Cleaning Crew</td>
+                <td class="action-buttons">
+                  <button class="edit-btn">Edit</button>
+                </td>
+              </tr>
+              <tr>
+                <td>MRT-4012</td>
+                <td>Engine Overhaul</td>
+                <td>Depot</td>
+                <td>2023-11-05</td>
+                <td><span class="status-badge status-completed">Completed</span></td>
+                <td>Tech Team C</td>
+                <td class="action-buttons">
+                  <button class="edit-btn">Edit</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="add-maintenance">
+        <h3>Add New Maintenance Record</h3>
+        <form id="maintenance-form">
+          <div class="form-group">
+            <label for="train-id">Train ID</label>
+            <select id="train-id" required>
+              <option value="">Select Train</option>
+              <option value="MRT-2056">MRT-2056</option>
+              <option value="MRT-1123">MRT-1123</option>
+              <option value="MRT-3089">MRT-3089</option>
+              <option value="MRT-4012">MRT-4012</option>
+              <option value="MRT-5077">MRT-5077</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="maintenance-type">Maintenance Type</label>
+            <select id="maintenance-type" required>
+              <option value="">Select Type</option>
+              <option value="Brake Inspection">Brake Inspection</option>
+              <option value="Electrical Check">Electrical Check</option>
+              <option value="Routine Cleaning">Routine Cleaning</option>
+              <option value="Engine Overhaul">Engine Overhaul</option>
+              <option value="Wheel Alignment">Wheel Alignment</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="station">Station/Depot</label>
+            <select id="station" required>
+              <option value="">Select Location</option>
+              <option value="Central Station">Central Station</option>
+              <option value="North Terminal">North Terminal</option>
+              <option value="West Station">West Station</option>
+              <option value="East Hub">East Hub</option>
+              <option value="Depot">Depot</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="scheduled-date">Scheduled Date</label>
+            <input type="date" id="scheduled-date" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="assigned-to">Assigned To</label>
+            <select id="assigned-to" required>
+              <option value="">Select Team</option>
+              <option value="Tech Team A">Tech Team A</option>
+              <option value="Tech Team B">Tech Team B</option>
+              <option value="Tech Team C">Tech Team C</option>
+              <option value="Cleaning Crew">Cleaning Crew</option>
+              <option value="External Vendor">External Vendor</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" rows="3"></textarea>
+          </div>
+          
+          <button type="submit" class="submit-btn">Add Maintenance Record</button>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <script src="javascript/station.js"></script>
+ 
+</body>
+</html>
