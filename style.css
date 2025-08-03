@@ -591,6 +591,7 @@ main {
 
 
 /* Team Grid Styles */
+/* Team Grid Styles */
 .team-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr); /* Always 4 columns */
@@ -656,8 +657,7 @@ main {
     .team-grid {
         grid-template-columns: 1fr;
     }
-
-
+}
 /* Schedule Page Specific Styles */
 .container {
     max-width: 1000px;
