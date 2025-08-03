@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (username === 'admin' && password === 'metrorail123') {
             localStorage.setItem('adminAuth', 'true');
             alert('Admin login successful!');
-            window.location.href = 'index.html';
+            window.location.href = 'ADMIN PAGE/index.html';
         } else {
             alert('Invalid admin credentials');
         }
