@@ -9,6 +9,31 @@
 </head>
 <body>
 
+
+	<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
+    authDomain: "metro-rail-2de9c.firebaseapp.com",
+    projectId: "metro-rail-2de9c",
+    storageBucket: "metro-rail-2de9c.firebasestorage.app",
+    messagingSenderId: "1036516254492",
+    appId: "1:1036516254492:web:a1d07b16233af9cecc90d9",
+    measurementId: "G-83G44S49J5"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+	
   <!-- ── Top Navigation Bar ─────────────────────────── -->
  <header class="topbar">
     <div class="logo">
