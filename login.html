@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrorail - Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <div class="date-time" id="currentDateTime"></div>
+        <hr>
+    </div>
+    
+    <div class="nav-links">
+        <a href="route-map.html">ROUTE MAP</a>
+        <a href="index.html">HOME</a>
+        <a href="schedule.html">SCHEDULE</a>
+        <a href="about.html">ABOUT</a>
+        <a href="travel-rules.html">TRAVEL RULES</a>
+    </div>
+
+    <div class="login-container">
+        <div class="login-header">
+            <h2>Welcome to Metrorail</h2>
+            <p>Please choose your login option</p>
+        </div>
+        
+        <div class="login-options">
+            <div class="login-card" id="userLoginCard">
+                <i class="fas fa-user"></i>
+                <h3>Passenger Login</h3>
+                <p>Access your personal account</p>
+                <button class="login-option-btn">Login as Passenger</button>
+            </div>
+            
+            <div class="login-card" id="adminLoginCard">
+                <i class="fas fa-lock"></i>
+                <h3>Admin Login</h3>
+                <p>Access the admin dashboard</p>
+                <button class="login-option-btn">Login as Admin</button>
+            </div>
+            
+            <div class="login-card" id="registerCard">
+                <i class="fas fa-user-plus"></i>
+                <h3>New User</h3>
+                <p>Create your account</p>
+                <button class="login-option-btn">Register</button>
+            </div>
+        </div>
+        
+        <!-- Hidden Forms -->
+        <div class="login-forms">
+            <!-- User Login Form -->
+            <form id="userLoginForm" class="login-form">
+                <h3><i class="fas fa-user"></i> Passenger Login</h3>
+                <div class="form-group">
+                    <label for="user-username">Username</label>
+                    <input type="text" id="user-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="user-password">Password</label>
+                    <input type="password" id="user-password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                <div class="form-footer">
+                    <a href="#" class="back-to-options"><i class="fas fa-arrow-left"></i> Back to options</a>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+            </form>
+            
+            <!-- Admin Login Form -->
+            <form id="adminLoginForm" class="login-form">
+                <h3><i class="fas fa-lock"></i> Admin Login</h3>
+                <div class="form-group">
+                    <label for="admin-username">Admin ID</label>
+                    <input type="text" id="admin-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input type="password" id="admin-password" required>
+                </div>
+                <button type="submit" class="login-btn">Login</button>
+                <div class="form-footer">
+                    <a href="#" class="back-to-options"><i class="fas fa-arrow-left"></i> Back to options</a>
+                </div>
+            </form>
+            
+            <!-- Registration Form -->
+            <form id="registerForm" class="login-form">
+                <h3><i class="fas fa-user-plus"></i> Create Account</h3>
+                <div class="form-group">
+                    <label for="reg-name">Full Name</label>
+                    <input type="text" id="reg-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-username">Username</label>
+                    <input type="text" id="reg-username" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-confirm">Confirm Password</label>
+                    <input type="password" id="reg-confirm" required>
+                </div>
+                <button type="submit" class="login-btn">Register</button>
+                <div class="form-footer">
+                    <a href="#" class="back-to-options"><i class="fas fa-arrow-left"></i> Back to options</a>
+                    <span>Already have an account? <a href="#" class="switch-to-login">Login</a></span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Copyright © Metrorail <span id="currentYear"></span></p>
+        <p><a href="about.html">About</a> | <a href="contact.html">Contact Us</a></p>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
