@@ -15,18 +15,18 @@ body {
   background: radial-gradient(circle at 80% 30%, #f4cb38 0%, #f2c635 35%, #fff6db 100%);
 }
 body {
-    padding-top: 60px; /* Match the height of your topbar */
+    padding-top: 60px; 
 }
 
-/* For the schedule page with secondary header */
+
 #schedule.page {
-    padding-top: 120px; /* Main topbar + secondary header */
+    padding-top: 120px; 
 }
 /* ========== Top Bar ========== */
 
-/* Change from sticky to fixed positioning */
+
 .topbar {
-    position: fixed; /* Changed from sticky */
+    position: fixed; 
     top: 0;
     left: 0;
     right: 0;
@@ -39,10 +39,10 @@ body {
     z-index: 1000;
 }
 
-/* Adjust the schedule page's secondary header */
+
 #schedule .topbar {
-    position: fixed; /* Changed from sticky */
-    top: 60px; /* Below main navigation */
+    position: fixed; 
+    top: 60px; 
     left: 0;
     right: 0;
     z-index: 999;
@@ -543,10 +543,8 @@ hr {
 }
 
 
-
-/* Add to style.css */
 body {
-    padding-top: 60px; /* Equal to topbar height */
+    padding-top: 60px; 
 }
 
 main {
@@ -554,32 +552,9 @@ main {
     z-index: 1;
 }
 
-/* Ensure content doesn't hide behind sticky header */
 .page {
     padding-top: 20px;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* Team Member Styles */
 .team-grid {
@@ -630,8 +605,6 @@ main {
     margin: 0;
 }
 
-
-/* Add these new styles for the enhanced schedule and FAQ sections */
 
 /* Schedule Page Specific Styles */
 .container {
@@ -874,7 +847,6 @@ main {
   width: 400px;
   height: 300px;
   overflow: hidden;
-  /*max-width: 500px; */
   position: relative;
   margin: auto;
 }
