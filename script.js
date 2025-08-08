@@ -223,9 +223,6 @@ const faqData = [
   }
 ];
 
-// =============================================
-// CORE FUNCTIONS
-// =============================================
 
 function init() {
   // Set up event listeners
@@ -263,9 +260,6 @@ function showPage(pageId) {
   }
 }
 
-// =============================================
-// HOME PAGE (ROUTE MAP) FUNCTIONS
-// =============================================
 
 function initRoutePage() {
   initHomeMap();
@@ -428,10 +422,6 @@ function updateAll() {
   updateTrainCountdown();
 }
 
-// =============================================
-// SCHEDULE PAGE FUNCTIONS
-// =============================================
-
 function initSchedulePage() {
   initScheduleMap();
   filterByRoute();
@@ -439,7 +429,7 @@ function initSchedulePage() {
   
   // Initial update
   setTimeout(simulateRealTimeUpdates, 1000);
-  // Set interval for updates
+  
   setInterval(simulateRealTimeUpdates, 25000);
 }
 
@@ -486,7 +476,7 @@ function filterByRoute() {
   tbody.innerHTML = "";
   
   if (selectedRoute === "all") {
-    // Show simplified schedule for all routes
+    
     trainSchedule.forEach(train => {
       if (!isTimePassed(train.departure) || train.status.includes("Delayed")) {
         const routeInfo = routes[train.route];
@@ -503,7 +493,7 @@ function filterByRoute() {
       }
     });
   } else {
-    // Show detailed schedule for selected route
+    
     const route = routes[selectedRoute];
     const routeTrains = trainSchedule.filter(train => 
       train.route === selectedRoute && 
@@ -511,7 +501,7 @@ function filterByRoute() {
     );
     
     routeTrains.forEach(train => {
-      // Add train header row
+      
       const headerRow = document.createElement("tr");
       headerRow.className = "train-header";
       headerRow.innerHTML = `
@@ -522,7 +512,7 @@ function filterByRoute() {
       `;
       tbody.appendChild(headerRow);
       
-      // Generate and display detailed schedule
+      
       const detailedSchedule = generateDetailedSchedule(route, train.departure);
       detailedSchedule.forEach(stop => {
         const row = document.createElement("tr");
@@ -557,7 +547,7 @@ function generateDetailedSchedule(route, departureTime) {
       action: "Arrival"
     });
     
-    // Departure time (except for last station)
+    
     if (i < route.substations.length - 1 && station.stopTime) {
       currentTime = addMinutes(currentTime, station.stopTime);
       schedule.push({
@@ -681,9 +671,6 @@ function simulateRealTimeUpdates() {
   filterByRoute();
 }
 
-// =============================================
-// FAQ PAGE FUNCTIONS
-// =============================================
 
 function initFAQPage() {
   renderFAQs();
@@ -760,9 +747,6 @@ function setupFAQEvents() {
   });
 }
 
-// =============================================
-// UTILITY FUNCTIONS
-// =============================================
 
 function updateDateTime() {
   const now = new Date();
@@ -799,7 +783,7 @@ showSlides();
 function showSlides() {
   let slides = document.getElementsByClassName("slide");
 
-  // Hide all slides
+  
   for (let i = 0; i < slides.length; i++) {
     slides[i].style.display = "none";
   }
@@ -815,8 +799,6 @@ function showSlides() {
   setTimeout(showSlides, 5000);
 }
 
-// =============================================
-// INITIALIZE APPLICATION
-// =============================================
+
 
 document.addEventListener('DOMContentLoaded', init);
