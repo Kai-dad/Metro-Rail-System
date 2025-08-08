@@ -63,7 +63,7 @@ const routes = {
             { name: "Corona", travelTime: 5, stopTime: 2 },
             { name: "Elandsfontein", travelTime: 5, stopTime: 2 },
             { name: "Hercules", travelTime: 5, stopTime: 2 },
-            { name: "Pretoria-Wes", travelTime: 5, stopTime: 2 },
+            { name: "Pretoria-West", travelTime: 5, stopTime: 2 },
             { name: "Pretoria", travelTime: 5 }
         ],
         price: "R5.50",
@@ -77,7 +77,7 @@ const routes = {
         destination: "Saulsville",
         substations: [
             { name: "Pretoria", stopTime: 2 },
-            { name: "Pretoria-Wes", travelTime: 5, stopTime: 2 },
+            { name: "Pretoria-West", travelTime: 5, stopTime: 2 },
             { name: "Hercules", travelTime: 5, stopTime: 2 },
             { name: "Elandsfontein", travelTime: 5, stopTime: 2 },
             { name: "Corona", travelTime: 5, stopTime: 2 },
