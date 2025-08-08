@@ -52,67 +52,122 @@ const homeTrainSchedule = [
 
 // Schedule page data
 const routes = {
-  "saulsville-pretoria": {
-    name: "Saulsville → Pretoria",
-    origin: "Saulsville",
-    destination: "Pretoria",
-    price: "R5.50",
-    originCoords: [-25.77000000, 28.054444],
-    destCoords: [-25.7548, 28.1868],
-    color: '#3498db'
-  },
-  "pretoria-saulsville": {
-    name: "Pretoria → Saulsville",
-    origin: "Pretoria",
-    destination: "Saulsville",
-    price: "R5.50",
-    originCoords: [-25.7548, 28.1868],
-    destCoords: [-25.77000000, 28.054444],
-    color: '#2ecc71'
-  },
-  "dewildt-pretoria": {
-    name: "De Wildt → Pretoria",
-    origin: "De Wildt",
-    destination: "Pretoria",
-    price: "R6.80",
-    originCoords: [-25.61248, 27.91062],
-    destCoords: [-25.7548, 28.1868],
-    color: '#3498db'
-  },
-  "pretoria-dewildt": {
-    name: "Pretoria → De Wildt",
-    origin: "Pretoria",
-    destination: "De Wildt",
-    price: "R7.20",
-    originCoords: [-25.7548, 28.1868],
-    destCoords: [-25.61248, 27.91062],
-    color: '#2ecc71'
-  }
+    "saulsville-pretoria": {
+        name: "Saulsville → Pretoria",
+        origin: "Saulsville",
+        destination: "Pretoria",
+        substations: [
+            { name: "Saulsville", stopTime: 2 },
+            { name: "Atteridgeville", travelTime: 5, stopTime: 2 },
+            { name: "Kalafong", travelTime: 5, stopTime: 2 },
+            { name: "Corona", travelTime: 5, stopTime: 2 },
+            { name: "Elandsfontein", travelTime: 5, stopTime: 2 },
+            { name: "Hercules", travelTime: 5, stopTime: 2 },
+            { name: "Pretoria-Wes", travelTime: 5, stopTime: 2 },
+            { name: "Pretoria", travelTime: 5 }
+        ],
+        price: "R5.50",
+        originCoords: [-25.77000000, 28.054444],
+        destCoords: [-25.7548, 28.1868],
+        color: '#3498db'
+    },
+    "pretoria-saulsville": {
+        name: "Pretoria → Saulsville",
+        origin: "Pretoria",
+        destination: "Saulsville",
+        substations: [
+            { name: "Pretoria", stopTime: 2 },
+            { name: "Pretoria-Wes", travelTime: 5, stopTime: 2 },
+            { name: "Hercules", travelTime: 5, stopTime: 2 },
+            { name: "Elandsfontein", travelTime: 5, stopTime: 2 },
+            { name: "Corona", travelTime: 5, stopTime: 2 },
+            { name: "Kalafong", travelTime: 5, stopTime: 2 },
+            { name: "Atteridgeville", travelTime: 5, stopTime: 2 },
+            { name: "Saulsville", travelTime: 5 }
+        ],
+        price: "R5.50",
+        originCoords: [-25.7548, 28.1868],
+        destCoords: [-25.77000000, 28.054444],
+        color: '#2ecc71'
+    },
+    "dewildt-pretoria": {
+        name: "De Wildt → Pretoria",
+        origin: "De Wildt",
+        destination: "Pretoria",
+        substations: [
+            { name: "De Wildt", stopTime: 2 },
+            { name: "Pretoria", travelTime: 35 }
+        ],
+        price: "R6.80",
+        originCoords: [-25.61248, 27.91062],
+        destCoords: [-25.7548, 28.1868],
+        color: '#3498db'
+    },
+    "pretoria-dewildt": {
+        name: "Pretoria → De Wildt",
+        origin: "Pretoria",
+        destination: "De Wildt",
+        substations: [
+            { name: "Pretoria", stopTime: 2 },
+            { name: "De Wildt", travelTime: 35 }
+        ],
+        price: "R7.20",
+        originCoords: [-25.7548, 28.1868],
+        destCoords: [-25.61248, 27.91062],
+        color: '#2ecc71'
+    }
 };
 
 // Schedule page train data
-const trainSchedule = [
-  { trainNumber: "SP101", route: "saulsville-pretoria", departure: "06:00", arrival: "06:30", status: "On Time" },
-  { trainNumber: "SP103", route: "saulsville-pretoria", departure: "09:00", arrival: "09:30", status: "On Time" },
-  { trainNumber: "SP105", route: "saulsville-pretoria", departure: "12:00", arrival: "12:30", status: "On Time" },
-  { trainNumber: "SP107", route: "saulsville-pretoria", departure: "15:00", arrival: "15:30", status: "On Time" },
-  { trainNumber: "SP109", route: "saulsville-pretoria", departure: "18:00", arrival: "18:30", status: "On Time" },
-  { trainNumber: "PS102", route: "pretoria-saulsville", departure: "07:30", arrival: "08:00", status: "On Time" },
-  { trainNumber: "PS104", route: "pretoria-saulsville", departure: "10:30", arrival: "11:00", status: "On Time" },
-  { trainNumber: "PS106", route: "pretoria-saulsville", departure: "13:30", arrival: "14:00", status: "On Time" },
-  { trainNumber: "PS108", route: "pretoria-saulsville", departure: "16:30", arrival: "17:00", status: "On Time" },
-  { trainNumber: "PS110", route: "pretoria-saulsville", departure: "19:30", arrival: "20:00", status: "On Time" },
-  { trainNumber: "DP111", route: "dewildt-pretoria", departure: "06:15", arrival: "06:50", status: "On Time" },
-  { trainNumber: "DP113", route: "dewildt-pretoria", departure: "09:15", arrival: "09:50", status: "On Time" },
-  { trainNumber: "DP115", route: "dewildt-pretoria", departure: "12:15", arrival: "12:50", status: "On Time" },
-  { trainNumber: "DP117", route: "dewildt-pretoria", departure: "15:15", arrival: "15:50", status: "On Time" },
-  { trainNumber: "DP119", route: "dewildt-pretoria", departure: "16:15", arrival: "16:50", status: "On Time" },
-  { trainNumber: "PD112", route: "pretoria-dewildt", departure: "07:45", arrival: "08:20", status: "On Time" },
-  { trainNumber: "PD114", route: "pretoria-dewildt", departure: "10:45", arrival: "11:20", status: "On Time" },
-  { trainNumber: "PD116", route: "pretoria-dewildt", departure: "13:45", arrival: "14:20", status: "On Time" },
-  { trainNumber: "PD118", route: "pretoria-dewildt", departure: "16:45", arrival: "17:20", status: "On Time" },
-  { trainNumber: "PD120", route: "pretoria-dewildt", departure: "19:45", arrival: "20:20", status: "On Time" }
+const originalTrainSchedule = [
+    // Pretoria → Saulsville (Weekday)
+    { trainNumber: "0003", route: "pretoria-saulsville", departure: "05:28", arrival: "06:40", status: "On Time" },
+    { trainNumber: "0005", route: "pretoria-saulsville", departure: "06:10", arrival: "06:54", status: "On Time" },
+    { trainNumber: "0007", route: "pretoria-saulsville", departure: "06:12", arrival: "07:07", status: "On Time" },  
+    { trainNumber: "0009", route: "pretoria-saulsville", departure: "06:25", arrival: "07:22", status: "On Time" },  
+    { trainNumber: "0011", route: "pretoria-saulsville", departure: "06:30", arrival: "07:37", status: "On Time" },  
+    { trainNumber: "0013", route: "pretoria-saulsville", departure: "06:32", arrival: "07:59", status: "On Time" },  
+    { trainNumber: "0015", route: "pretoria-saulsville", departure: "07:07", arrival: "08:04", status: "On Time" },  
+    { trainNumber: "0017", route: "pretoria-saulsville", departure: "07:22", arrival: "08:11", status: "On Time" },  
+    { trainNumber: "0019", route: "pretoria-saulsville", departure: "07:35", arrival: "08:32", status: "On Time" },  
+    { trainNumber: "0021", route: "pretoria-saulsville", departure: "07:49", arrival: "08:47", status: "On Time" },  
+    { trainNumber: "0022", route: "pretoria-saulsville", departure: "20:10", arrival: "20:55", status: "On Time" },
+    { trainNumber: "0025", route: "pretoria-saulsville", departure: "21:17", arrival: "21:54", status: "On Time" },
+    { trainNumber: "0027", route: "pretoria-saulsville", departure: "22:01", arrival: "22:27", status: "On Time" },
+    { trainNumber: "0029", route: "pretoria-saulsville", departure: "22:17", arrival: "22:42", status: "On Time" },
+    
+    // Saulsville → Pretoria (Weekday)
+    { trainNumber: "0004", route: "saulsville-pretoria", departure: "08:32", arrival: "08:57", status: "On Time" },
+    { trainNumber: "0043", route: "saulsville-pretoria", departure: "09:12", arrival: "09:37", status: "On Time" },  
+    { trainNumber: "0044", route: "saulsville-pretoria", departure: "09:48", arrival: "10:13", status: "On Time" },
+    { trainNumber: "0065", route: "saulsville-pretoria", departure: "10:22", arrival: "10:47", status: "On Time" },
+    { trainNumber: "0047", route: "saulsville-pretoria", departure: "10:58", arrival: "11:23", status: "On Time" },
+    { trainNumber: "0048", route: "saulsville-pretoria", departure: "11:32", arrival: "11:57", status: "On Time" },  
+    { trainNumber: "0051", route: "saulsville-pretoria", departure: "12:03", arrival: "12:28", status: "On Time" },
+    { trainNumber: "0053", route: "saulsville-pretoria", departure: "12:42", arrival: "13:07", status: "On Time" },  
+    { trainNumber: "0055", route: "saulsville-pretoria", departure: "13:18", arrival: "13:43", status: "On Time" },
+    { trainNumber: "0059", route: "saulsville-pretoria", departure: "15:52", arrival: "16:17", status: "On Time" },  
+    { trainNumber: "0039", route: "saulsville-pretoria", departure: "20:28", arrival: "20:53", status: "On Time" },
+    { trainNumber: "0061", route: "saulsville-pretoria", departure: "21:02", arrival: "21:27", status: "On Time" },
+    { trainNumber: "0063", route: "saulsville-pretoria", departure: "22:17", arrival: "22:42", status: "On Time" },
+    { trainNumber: "0065", route: "saulsville-pretoria", departure: "22:32", arrival: "22:57", status: "On Time" },
+    
+    // De Wildt → Pretoria
+    { trainNumber: "DW101", route: "dewildt-pretoria", departure: "06:15", arrival: "06:50", status: "On Time" },
+    { trainNumber: "DW103", route: "dewildt-pretoria", departure: "09:15", arrival: "09:50", status: "On Time" },
+    { trainNumber: "DW105", route: "dewildt-pretoria", departure: "12:15", arrival: "12:50", status: "On Time" },
+    { trainNumber: "DW107", route: "dewildt-pretoria", departure: "15:15", arrival: "15:50", status: "On Time" },
+    { trainNumber: "DW109", route: "dewildt-pretoria", departure: "16:15", arrival: "16:50", status: "On Time" },
+    
+    // Pretoria → De Wildt
+    { trainNumber: "PD102", route: "pretoria-dewildt", departure: "07:45", arrival: "08:20", status: "On Time" },
+    { trainNumber: "PD104", route: "pretoria-dewildt", departure: "10:45", arrival: "11:20", status: "On Time" },
+    { trainNumber: "PD106", route: "pretoria-dewildt", departure: "13:45", arrival: "14:20", status: "On Time" },
+    { trainNumber: "PD108", route: "pretoria-dewildt", departure: "16:45", arrival: "17:20", status: "On Time" },
+    { trainNumber: "PD110", route: "pretoria-dewildt", departure: "19:45", arrival: "20:20", status: "On Time" }
 ];
+
+let trainSchedule = [...originalTrainSchedule];
 
 // FAQ data
 const faqData = [
@@ -381,7 +436,11 @@ function initSchedulePage() {
   initScheduleMap();
   filterByRoute();
   setupScheduleEvents();
-  simulateRealTimeUpdates();
+  
+  // Initial update
+  setTimeout(simulateRealTimeUpdates, 1000);
+  // Set interval for updates
+  setInterval(simulateRealTimeUpdates, 25000);
 }
 
 function initScheduleMap() {
@@ -426,9 +485,10 @@ function filterByRoute() {
   
   tbody.innerHTML = "";
   
-  trainSchedule.forEach(train => {
-    if (!isTimePassed(train.departure) || train.status.includes("Delayed")) {
-      if (selectedRoute === "all" || train.route === selectedRoute) {
+  if (selectedRoute === "all") {
+    // Show simplified schedule for all routes
+    trainSchedule.forEach(train => {
+      if (!isTimePassed(train.departure) || train.status.includes("Delayed")) {
         const routeInfo = routes[train.route];
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -441,10 +501,86 @@ function filterByRoute() {
         `;
         tbody.appendChild(row);
       }
-    }
-  });
+    });
+  } else {
+    // Show detailed schedule for selected route
+    const route = routes[selectedRoute];
+    const routeTrains = trainSchedule.filter(train => 
+      train.route === selectedRoute && 
+      (!isTimePassed(train.departure) || train.status.includes("Delayed"))
+    );
+    
+    routeTrains.forEach(train => {
+      // Add train header row
+      const headerRow = document.createElement("tr");
+      headerRow.className = "train-header";
+      headerRow.innerHTML = `
+        <td colspan="6">
+          <strong>Train ${train.trainNumber}</strong> - Departure: ${train.departure} | 
+          Arrival: ${train.arrival} | Status: <span class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</span>
+        </td>
+      `;
+      tbody.appendChild(headerRow);
+      
+      // Generate and display detailed schedule
+      const detailedSchedule = generateDetailedSchedule(route, train.departure);
+      detailedSchedule.forEach(stop => {
+        const row = document.createElement("tr");
+        row.className = "substation-schedule";
+        row.innerHTML = `
+          <td></td>
+          <td>${stop.station}</td>
+          <td>${stop.time}</td>
+          <td>${stop.action}</td>
+          <td></td>
+          <td></td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+  }
   
   updateMapForRoute(selectedRoute);
+}
+
+function generateDetailedSchedule(route, departureTime) {
+  const schedule = [];
+  let currentTime = departureTime;
+  
+  for (let i = 0; i < route.substations.length; i++) {
+    const station = route.substations[i];
+    
+    // Arrival time
+    schedule.push({
+      station: station.name,
+      time: currentTime,
+      action: "Arrival"
+    });
+    
+    // Departure time (except for last station)
+    if (i < route.substations.length - 1 && station.stopTime) {
+      currentTime = addMinutes(currentTime, station.stopTime);
+      schedule.push({
+        station: station.name,
+        time: currentTime,
+        action: "Departure"
+      });
+    }
+    
+    // Travel time to next station
+    if (i < route.substations.length - 1 && route.substations[i+1].travelTime) {
+      currentTime = addMinutes(currentTime, route.substations[i+1].travelTime);
+    }
+  }
+  
+  return schedule;
+}
+
+function addMinutes(timeString, minutes) {
+  const [hours, mins] = timeString.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, mins + minutes, 0, 0);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 function updateMapForRoute(routeKey) {
@@ -502,7 +638,6 @@ function simulateRealTimeUpdates() {
     const randomAction = Math.random();
     
     if (randomAction < 0.6) { // 60% chance for on time
-      // No change needed
       document.getElementById('realTimeUpdate').textContent = `Train ${randomTrain.trainNumber} is running on schedule`;
       document.getElementById('passengerAlert').textContent = "No delays expected";
       document.getElementById('safetyAlert').textContent = "All systems operational";
