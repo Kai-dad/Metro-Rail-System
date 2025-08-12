@@ -71,7 +71,7 @@ authForm.addEventListener("submit", async (e) => {
 
     
       if (loggedInEmail.toLowerCase() === adminEmail.toLowerCase()) {
-        window.location.href = "admin.html";
+        window.location.href = "ADMIN PAGE/index.html";
       } else {
         window.location.href = "index.html";
       }
@@ -91,6 +91,7 @@ authForm.addEventListener("submit", async (e) => {
     message.textContent = err.message;
   }
 });
+
 
 
 
