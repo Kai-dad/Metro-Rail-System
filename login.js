@@ -8,12 +8,12 @@ import {
 
 
 const firebaseConfig = {
-  apiKey: "AIzaSyADfkLMNqakJ7oe_17JD7yHT2vsAWTmSfs",
-  authDomain: "login-tester-bbcd4.firebaseapp.com",
-  projectId: "login-tester-bbcd4",
-  storageBucket: "login-tester-bbcd4.firebasestorage.app",
-  messagingSenderId: "269641711240",
-  appId: "1:269641711240:web:f7ceb8893f1c54d44fe93d"
+  apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
+  authDomain: "metro-rail-2de9c.firebaseapp.com",
+  projectId: "metro-rail-2de9c",
+  storageBucket: "metro-rail-2de9c.firebasestorage.app",
+  messagingSenderId: "1036516254492",
+  appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
 
 
@@ -91,6 +91,7 @@ authForm.addEventListener("submit", async (e) => {
     message.textContent = err.message;
   }
 });
+
 
 
 
