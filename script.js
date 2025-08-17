@@ -1,3 +1,57 @@
+// =============================================
+// GLOBAL VARIABLES AND DATA
+// =============================================
+
+let homeMap;
+let originMarker, destMarker, routeLine;
+let currentRouteIndex = 0;
+let routeInterval;
+
+// Home page route data
+const homeRoutes = [
+  { 
+    origin: "Saulsville", 
+    destination: "Pretoria", 
+    price: "R5,50", 
+    originCoords: [-25.77000000, 28.054444], 
+    destCoords: [-25.7548, 28.1868],
+    color: '#3498db'
+  },
+  { 
+    origin: "Pretoria", 
+    destination: "De Wildt", 
+    price: "R7,20", 
+    originCoords: [-25.7548, 28.1868], 
+    destCoords: [-25.61248, 27.91062],
+    color: '#2ecc71'
+  },
+  { 
+    origin: "Pretoria", 
+    destination: "Saulsville", 
+    price: "R5,50", 
+    originCoords: [-25.7548, 28.1868], 
+    destCoords: [-25.77000000, 28.054444],
+    color: '#3498db'
+  },
+  { 
+    origin: "De Wildt", 
+    destination: "Pretoria", 
+    price: "R6,80", 
+    originCoords: [-25.61248, 27.91062], 
+    destCoords: [-25.7548, 28.1868],
+    color: '#2ecc71'
+  }
+];
+
+// Home page train schedule
+const homeTrainSchedule = [
+  "06:00", "07:30", "09:00", "10:30", 
+  "12:00", "13:30", "15:00", "16:30", 
+  "18:00", "19:30", "21:00", "23:45"
+];
+
+// =============================
+// PLACE NEW SCHEDULE CODE BELOW
 /* -------------------- FIREBASE (modular v9) -------------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
@@ -79,18 +133,6 @@ function listenForScheduleChanges() {
   });
 }
 
-function showPage(pageId) {
-  document.querySelectorAll('.page').forEach(page => {
-    page.classList.remove('active');
-  });
-
-  const target = document.getElementById(pageId);
-  if (target) {
-    target.classList.add('active');
-  } else {
-    // fallback 404
-    document.getElementById('home').classList.add('active');
-  }
 }
 
 
@@ -121,290 +163,377 @@ function filterRows() {
 
 
 
-/*about page javascript*/
+// =============================
 
-// Team data
-const teamMembers = [
-    {
-        name: "Frank Nkuna",
-        position: "CEO",
-        image: "images/image.jpg"
-    },
-    {
-        name: "Oageng Mashaba",
-        position: "Operations Director",
-        image: "images/oagang.jpg"
-    },
-    {
-        name: "Kagiso M",
-        position: "Safety Manager",
-        image: "images/kg.jpg"
-    },
-    {
-        name: "Tshepo Sepataka",
-        position: "Customer Service",
-        image: "images/image.jpg"
-    }
+
+// FAQ data
+const faqData = [
+  {
+    question: "How do I purchase a Metrorail ticket?",
+    answer: "You can purchase tickets at any Metrorail station ticket office or from authorized ticket vendors. We also offer mobile ticketing through our official app available on iOS and Android.",
+    category: "ticketing"
+  },
+  {
+    question: "What payment methods are accepted?",
+    answer: "We accept cash, debit cards, credit cards (Visa, Mastercard), and mobile payment options like SnapScan. Some stations also accept transport vouchers.",
+    category: "ticketing"
+  },
+  {
+    question: "Are there discounts for students or seniors?",
+    answer: "Yes, students with valid student IDs receive a 30% discount. Seniors (65+) receive a 50% discount on all fares. Proof of age or student status is required when purchasing discounted tickets.",
+    category: "ticketing"
+  },
+  {
+    question: "What safety measures are in place on Metrorail?",
+    answer: "We have security personnel at major stations, CCTV surveillance, emergency call points on trains and platforms, and regular patrols by railway police. Please report any concerns to staff immediately.",
+    category: "safety"
+  },
+  {
+    question: "What should I do in an emergency?",
+    answer: "Remain calm and follow instructions from staff. Use the emergency call points located on trains and platforms. In case of evacuation, move calmly to designated safe areas.",
+    category: "safety"
+  },
+  {
+    question: "How often do trains run?",
+    answer: "Frequency varies by route and time of day. The Saulsville-Pretoria line runs every 90 minutes during peak hours (6-9am and 4-7pm) and every 2 hours off-peak. Check our schedule page for exact times.",
+    category: "schedule"
+  },
+  {
+    question: "What happens if my train is delayed?",
+    answer: "We announce delays through station announcements and our mobile app. For delays over 30 minutes, you may use your ticket on the next available train. No refunds are given for delays.",
+    category: "schedule"
+  },
+  {
+    question: "Is Metrorail wheelchair accessible?",
+    answer: "Most of our newer stations have wheelchair access, lifts, and designated spaces on trains. Please check our accessibility map or contact customer service for specific station information.",
+    category: "accessibility"
+  },
+  {
+    question: "Can I bring my bicycle on the train?",
+    answer: "Folding bicycles are allowed at all times. Standard bicycles are permitted outside peak hours (9am-4pm and after 7pm) on designated carriages. A bicycle ticket is required (R15).",
+    category: "accessibility"
+  },
+  {
+    question: "What is the luggage policy?",
+    answer: "You may bring up to 2 items of luggage not exceeding 25kg each or 1m in length. Luggage must not block aisles or doors. Oversized items may require special arrangement.",
+    category: "ticketing"
+  }
 ];
-
-// Initialize page
-function initAboutPage() {
-    // Update date and year
-    function updateDateTime() {
-        const now = new Date();
-        const options = { 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        };
-        document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
-        document.getElementById('currentYear').textContent = now.getFullYear();
-    }
-
-    // Render team members
-    function renderTeam() {
-        const teamContainer = document.getElementById('teamMembers');
-        teamContainer.innerHTML = teamMembers.map(member => `
-            <div class="team-member">
-                <img src="${member.image}" alt="${member.name}">
-                <h3>${member.name}</h3>
-                <p>${member.position}</p>
-            </div>
-        `).join('');
-    }
-
-    // Initialize functions
-    updateDateTime();
-    renderTeam();
-    setInterval(updateDateTime, 6000);
-}
-
-// Start the page
-document.addEventListener('DOMContentLoaded', initAboutPage);
-
-
-
-
-// route map javascript
-
-
-const trainSchedule = [
-    "06:00", "07:30", "09:00", "10:30", 
-    "12:00", "13:30", "15:00", "16:30", 
-    "18:00", "19:30", "21:00", "23:45"
-];
-
-
-const routes = [
-    { 
-        origin: "Saulsville", 
-        destination: "Pretoria", 
-        price: "R5,50",
-        originCoords: [-25.77000000, 28.054444],
-        destCoords: [-25.7548, 28.1868]
-    },
-	
-    { 
-        origin: "Pretoria", 
-        destination: "De Wildt", 
-        price: "R7,20",
-        originCoords: [-25.7548, 28.1868],
-        destCoords: [-25.61248, 27.91062]
-    },
-	{ 
-        origin: "Pretoria", 
-        destination: "Saulsville", 
-        price: "R5,50",
-        originCoords: [-25.7548, 28.1868],
-        destCoords: [-25.77000000, 28.054444]
-    },
-    { 
-        origin: "De Wildt", 
-        destination: "Pretoria", 
-        price: "R6,80",
-        originCoords: [-25.61248, 27.91062],
-        destCoords: [-25.7548, 28.1868]
-    }
-];
-
-let currentRouteIndex = 0;
-let map;
-let originMarker, destMarker;
-let routeLine;
-
-
-function initMap() {
-    map = L.map('map').setView([-25.7479, 28.2293], 12);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    
-    updateMapRoute();
-}
-
-
-function updateMapRoute() {
-    const route = routes[currentRouteIndex];
-    
- 
-    if (originMarker) map.removeLayer(originMarker);
-    if (destMarker) map.removeLayer(destMarker);
-    if (routeLine) map.removeLayer(routeLine);
-    
-    
-    originMarker = L.marker(route.originCoords)
-        .addTo(map)
-        .bindPopup(`Origin: ${route.origin}`);
-    
-    destMarker = L.marker(route.destCoords)
-        .addTo(map)
-        .bindPopup(`Destination: ${route.destination}`);
-    
-	 const lineColor = route.destination === "Pretoria" ? '#2ecc71': '#3498db';
-	 
-	 routeLine = L.polyline([route.originCoords, route.destCoords], {
-        color: lineColor,
-        weight: 3
-    }).addTo(map);
-    
-    
-    
-    map.fitBounds([route.originCoords, route.destCoords]);
-}
-
-
-function updateRoute() {
-    currentRouteIndex = (currentRouteIndex + 1) % routes.length;
-    const route = routes[currentRouteIndex];
-    
-    document.getElementById('origin').textContent = route.origin;
-    document.getElementById('destination').textContent = route.destination;
-    document.getElementById('tripCost').textContent = route.price;
-    
-    updateMapRoute();
-}
-
-
-function updateClock() {
-    const now = new Date();
-    const dateOptions = { 
-        day: 'numeric', 
-        month: 'long', 
-        year: 'numeric' 
-    };
-    const timeOptions = {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
-    };
-    const compactTimeOptions = {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-    };
-    
-    const currentDate = now.toLocaleDateString('en-US', dateOptions);
-    let currentTime = now.toLocaleTimeString('en-US', timeOptions);
-    let compactTime = now.toLocaleTimeString('en-US', compactTimeOptions);
-    
-    currentTime = currentTime.replace(/^24:/, '00:');
-    compactTime = compactTime.replace(/^24:/, '00:');
-    
-    document.getElementById('currentDateTime').textContent = 
-        `${currentDate}\n${currentTime}`;
-    document.getElementById('currentDateTimeCompact').textContent = 
-        `${currentDate}, ${compactTime}`;
-    
-    document.getElementById('currentYear').textContent = now.getFullYear();
-}
-
-
-function updateTrainCountdown() {
-    const now = new Date();
-    const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-    
-    let nextTrain = null;
-    let secDiff = Infinity;
-    
-    
-    for (const time of trainSchedule) {
-        const [trainHours, trainMinutes] = time.split(':').map(Number);
-        const trainTotalSeconds = trainHours * 3600 + trainMinutes * 60;
-        let diff = trainTotalSeconds - currentTotalSeconds;
-        
-        if (diff > 0 && diff < secDiff) {
-            secDiff = diff;
-            nextTrain = time;
-        }
-    }
-    
-    const countdownElement = document.getElementById('countdown');
-    
-    if (nextTrain) {
-		const hours = Math.floor(secDiff / 3600)
-        const minutes = Math.floor((secDiff%3600) / 60);
-        const seconds = secDiff % 60;
-        
-        if (secDiff <= 60) {
-            countdownElement.textContent = `${seconds} seconds - Boarding now!`;
-        } else if (secDiff <= 120) {
-            countdownElement.textContent = "1 minute - Boarding soon!";
-        } else if(secDiff >= 3600){
-			countdownElement.textContent = `${hours} hours ${minutes} minutes (${nextTrain})`
-		}
-
-		  else {
-            const [hours, mins] = nextTrain.split(':');
-            const formattedTime = `${hours.padStart(2, '0')}:${mins}`;
-            countdownElement.textContent = `${minutes} minutes (${formattedTime})`;
-        }
-    } else {
-        const firstTrain = trainSchedule[0].split(':').map(Number);
-        const firstTrainSeconds = firstTrain[0] * 3600 + firstTrain[1] * 60;
-        const secondsUntilFirstTrain = (24 * 3600 - currentTotalSeconds) + firstTrainSeconds;
-        
-        if (secondsUntilFirstTrain < 12 * 3600) {
-            const hours = Math.floor(secondsUntilFirstTrain / 3600);
-            const minutes = Math.floor((secondsUntilFirstTrain % 3600) / 60);
-            const formattedTime = `${firstTrain[0].toString().padStart(2, '0')}:${firstTrain[1].toString().padStart(2, '0')}`;
-            countdownElement.textContent = `${hours}h ${minutes}m (${formattedTime} next day)`;
-        } else {
-            countdownElement.textContent = "No more trains today";
-        }
-    }
-}
-
-
-function updateAll() {
-    updateClock();
-    updateTrainCountdown();
-}
 
 
 function init() {
+  // Set up event listeners
+  window.addEventListener('hashchange', () => {
+    const hash = location.hash.replace('#', '') || 'home';
+    showPage(hash);
+  });
 
-	// Load initial schedule
-    loadScheduleFromFirestore();
-  // Start listening for changes
-    listenForScheduleChanges();
-	
-    initMap();
-    updateAll();
-    updateRoute();
-    
-    setInterval(updateAll, 1000);
-    setInterval(updateRoute, 15000);
+  // Initial page load
+  const hash = location.hash.replace('#', '') || 'home';
+  showPage(hash);
 }
 
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
+
+  const target = document.getElementById(pageId);
+  if (target) {
+    target.classList.add('active');
+
+    if (pageId === 'home') {
+      setTimeout(initRoutePage, 50);
+    }
+    if (pageId === 'faq') {
+      setTimeout(initFAQPage, 50);
+    }
+  } else {
+    document.getElementById('home').classList.add('active');
+    setTimeout(initRoutePage, 50);
+  }
+}
+
+
+function initRoutePage() {
+  initHomeMap();
+  updateAll();
+  updateRoute();
+
+  clearInterval(window.routeInterval);
+  clearInterval(window.clockInterval);
+
+  window.clockInterval = setInterval(updateAll, 1000);
+  window.routeInterval = setInterval(updateRoute, 15000); // Change route every 15 seconds
+}
+
+function initHomeMap() {
+  if (!document.getElementById('map')) {
+    console.error("Home map container not found");
+    return;
+  }
+
+  if (!homeMap) {
+    homeMap = L.map('map').setView([-25.7479, 28.2293], 12);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(homeMap);
+
+    homeMap.scrollWheelZoom.disable();
+    
+    document.getElementById('map').addEventListener('mouseenter', function() {
+      homeMap.scrollWheelZoom.enable();
+    });
+    
+    document.getElementById('map').addEventListener('mouseleave', function() {
+      homeMap.scrollWheelZoom.disable();
+    });
+  }
+
+  updateMapRoute();
+}
+
+function updateMapRoute() {
+  if (!homeMap) return;
+
+  const route = homeRoutes[currentRouteIndex];
+
+  // Clear previous elements
+  if (originMarker) homeMap.removeLayer(originMarker);
+  if (destMarker) homeMap.removeLayer(destMarker);
+  if (routeLine) homeMap.removeLayer(routeLine);
+
+  // Add new markers
+  originMarker = L.marker(route.originCoords)
+    .addTo(homeMap)
+    .bindPopup(`Origin: ${route.origin}`);
+  
+  destMarker = L.marker(route.destCoords)
+    .addTo(homeMap)
+    .bindPopup(`Destination: ${route.destination}`);
+
+  // Add new route line
+  routeLine = L.polyline([route.originCoords, route.destCoords], {
+    color: route.color,
+    weight: 4,
+    opacity: 0.7
+  }).addTo(homeMap);
+
+  // Fit bounds to show both points
+  homeMap.fitBounds([route.originCoords, route.destCoords], {
+    padding: [50, 50]
+  });
+}
+
+function updateRoute() {
+  currentRouteIndex = (currentRouteIndex + 1) % homeRoutes.length;
+  const route = homeRoutes[currentRouteIndex];
+  
+  // Update DOM elements
+  const originEl = document.getElementById('origin');
+  const destEl = document.getElementById('destination');
+  const costEl = document.getElementById('tripCost');
+
+  if (originEl) originEl.textContent = route.origin;
+  if (destEl) destEl.textContent = route.destination;
+  if (costEl) costEl.textContent = route.price;
+
+  updateMapRoute();
+}
+
+function updateClock() {
+  const now = new Date();
+  const dateOptions = { day: 'numeric', month: 'long', year: 'numeric' };
+  const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+  const compactTimeOptions = { hour: '2-digit', minute: '2-digit', hour12: false };
+
+  const currentDate = now.toLocaleDateString('en-US', dateOptions);
+  let currentTime = now.toLocaleTimeString('en-US', timeOptions);
+  let compactTime = now.toLocaleTimeString('en-US', compactTimeOptions);
+
+  currentTime = currentTime.replace(/^24:/, '00:');
+  compactTime = compactTime.replace(/^24:/, '00:');
+
+  const dateTimeEl = document.getElementById('currentDateTime');
+  const dateTimeCompactEl = document.getElementById('currentDateTimeCompact');
+  const yearEl = document.getElementById('currentYear');
+
+  if (dateTimeEl) dateTimeEl.textContent = `${currentDate} ${currentTime}`;
+  if (dateTimeCompactEl) dateTimeCompactEl.textContent = `${currentDate}, ${compactTime}`;
+  if (yearEl) yearEl.textContent = now.getFullYear();
+}
+
+function updateTrainCountdown() {
+  const now = new Date();
+  const currentTotalSeconds = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+  let nextTrain = null;
+  let secDiff = Infinity;
+
+  for (const time of homeTrainSchedule) {
+    const [trainHours, trainMinutes] = time.split(':').map(Number);
+    const trainTotalSeconds = trainHours * 3600 + trainMinutes * 60;
+    let diff = trainTotalSeconds - currentTotalSeconds;
+
+    if (diff > 0 && diff < secDiff) {
+      secDiff = diff;
+      nextTrain = time;
+    }
+  }
+
+  const countdownElement = document.getElementById('countdown');
+  if (!countdownElement) return;
+
+  if (nextTrain) {
+    const hours = Math.floor(secDiff / 3600);
+    const minutes = Math.floor((secDiff % 3600) / 60);
+    const seconds = secDiff % 60;
+
+    if (secDiff <= 60) {
+      countdownElement.textContent = `${seconds} seconds - Boarding now!`;
+    } else if (secDiff <= 120) {
+      countdownElement.textContent = "1 minute - Boarding soon!";
+    } else if (secDiff >= 3600) {
+      countdownElement.textContent = `${hours} hours ${minutes} minutes (${nextTrain})`;
+    } else {
+      countdownElement.textContent = `${minutes} minutes (${nextTrain})`;
+    }
+  } else {
+    const firstTrain = homeTrainSchedule[0].split(':').map(Number);
+    const firstTrainSeconds = firstTrain[0] * 3600 + firstTrain[1] * 60;
+    const secondsUntilFirstTrain = (24 * 3600 - currentTotalSeconds) + firstTrainSeconds;
+
+    const hours = Math.floor(secondsUntilFirstTrain / 3600);
+    const minutes = Math.floor((secondsUntilFirstTrain % 3600) / 60);
+    const formattedTime = `${firstTrain[0].toString().padStart(2, '0')}:${firstTrain[1].toString().padStart(2, '0')}`;
+    countdownElement.textContent = `${hours}h ${minutes}m (${formattedTime} next day)`;
+  }
+}
+
+function updateAll() {
+  updateClock();
+  updateTrainCountdown();
+}
+
+
+function initFAQPage() {
+  renderFAQs();
+  setupFAQEvents();
+  updateDateTime();
+}
+
+function renderFAQs(category = 'all', searchTerm = '') {
+  const faqAccordion = document.getElementById('faqAccordion');
+  if (!faqAccordion) return;
+  
+  faqAccordion.innerHTML = '';
+  
+  const filteredFAQs = faqData.filter(faq => {
+    const matchesCategory = category === 'all' || faq.category === category;
+    const matchesSearch = searchTerm === '' || 
+      faq.question.toLowerCase().includes(searchTerm) || 
+      faq.answer.toLowerCase().includes(searchTerm);
+    return matchesCategory && matchesSearch;
+  });
+  
+  if (filteredFAQs.length === 0) {
+    faqAccordion.innerHTML = '<div class="no-results">No FAQs match your search. Try different keywords or contact our support team.</div>';
+    return;
+  }
+  
+  filteredFAQs.forEach((faq, index) => {
+    const faqItem = document.createElement('div');
+    faqItem.className = 'faq-item';
+    faqItem.innerHTML = `
+      <div class="faq-question">
+        <span>${faq.question} <span class="faq-category">${faq.category}</span></span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+      <div class="faq-answer">
+        <p>${faq.answer}</p>
+      </div>
+    `;
+    
+    faqItem.addEventListener('click', () => {
+      faqItem.classList.toggle('active');
+    });
+    
+    faqAccordion.appendChild(faqItem);
+  });
+}
+
+function setupFAQEvents() {
+  const categoryBtns = document.querySelectorAll('.category-btn');
+  const searchInput = document.getElementById('faqSearch');
+  const searchButton = document.getElementById('searchButton');
+  
+  categoryBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      categoryBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const category = btn.dataset.category;
+      renderFAQs(category, searchInput.value.toLowerCase());
+    });
+  });
+  
+  searchButton.addEventListener('click', () => {
+    const searchTerm = searchInput.value.toLowerCase();
+    const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+    renderFAQs(activeCategory, searchTerm);
+  });
+  
+  searchInput.addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') {
+      const searchTerm = searchInput.value.toLowerCase();
+      const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+      renderFAQs(activeCategory, searchTerm);
+    }
+  });
+}
+
+
+function updateDateTime() {
+  const now = new Date();
+  const options = { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  };
+  
+  const el = document.getElementById('currentDateTime');
+  if (el) el.textContent = now.toLocaleDateString('en-US', options);
+  
+  const yearEl = document.getElementById('currentYear');
+  if (yearEl) yearEl.textContent = now.getFullYear();
+}
+
+//AUDREY JS
+let slideIndex = 0;
+showSlides();
+
+function showSlides() {
+  let slides = document.getElementsByClassName("slide");
+
+  
+  for (let i = 0; i < slides.length; i++) {
+    slides[i].style.display = "none";
+  }
+
+  // Move to the next slide
+  slideIndex++;
+  if (slideIndex > slides.length) { slideIndex = 1 }
+
+  // Show current slide
+  slides[slideIndex - 1].style.display = "block";
+
+  // Change image every 5 seconds
+  setTimeout(showSlides, 5000);
+}
+
+
+
 document.addEventListener('DOMContentLoaded', init);
-
-
-
-
-
-
