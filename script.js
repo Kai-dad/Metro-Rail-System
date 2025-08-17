@@ -133,6 +133,18 @@ function listenForScheduleChanges() {
   });
 }
 
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(page => {
+    page.classList.remove('active');
+  });
+
+  const target = document.getElementById(pageId);
+  if (target) {
+    target.classList.add('active');
+  } else {
+    // fallback 404
+    document.getElementById('home').classList.add('active');
+  }
 }
 
 
@@ -160,8 +172,6 @@ function filterRows() {
     row.style.display = station.includes(query) ? "" : "none";
   });
 }
-
-
 
 // =============================
 
