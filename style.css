@@ -707,3 +707,38 @@ hr {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .alerts-container, .contact-methods {
+        grid-template-columns: 1fr;
+    }
+    
+    #trainSchedule {
+        font-size: 14px;
+    }
+    
+    #trainSchedule th, #trainSchedule td {
+        padding: 8px;
+    }
+    
+    .faq-categories {
+        justify-content: center;
+    }
+}
+
+.slideshow { 
+  width: 400px;
+  height: 300px;
+  overflow: hidden;
+  position: relative;
+  margin: auto;
+}
+
+.slide {
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  width: 100%;
+  border-radius: 8px;
+}
+
