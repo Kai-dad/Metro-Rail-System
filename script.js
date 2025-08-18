@@ -436,8 +436,8 @@ function showAllRoutes() {
       opacity: 0.7
     }).addTo(scheduleMap);
   });
-
-const allCoords = Object.values(routes).flatMap(route => [route.originCoords, route.destCoords]);
+  
+  const allCoords = Object.values(routes).flatMap(route => [route.originCoords, route.destCoords]);
   scheduleMap.fitBounds(allCoords);
 }
 
@@ -459,7 +459,6 @@ function filterByRoute() {
   tbody.innerHTML = "";
   
   if (selectedRoute === "all") {
-    
     trainSchedule.forEach(train => {
       if (!isTimePassed(train.departure) || train.status.includes("Delayed")) {
         const routeInfo = routes[train.route];
@@ -476,7 +475,6 @@ function filterByRoute() {
       }
     });
   } else {
-    
     const route = routes[selectedRoute];
     const routeTrains = trainSchedule.filter(train => 
       train.route === selectedRoute && 
@@ -484,7 +482,6 @@ function filterByRoute() {
     );
     
     routeTrains.forEach(train => {
-      
       const headerRow = document.createElement("tr");
       headerRow.className = "train-header";
       headerRow.innerHTML = `
@@ -494,7 +491,6 @@ function filterByRoute() {
         </td>
       `;
       tbody.appendChild(headerRow);
-      
       
       const detailedSchedule = generateDetailedSchedule(route, train.departure);
       detailedSchedule.forEach(stop => {
@@ -529,7 +525,6 @@ function generateDetailedSchedule(route, departureTime) {
       time: currentTime,
       action: "Arrival"
     });
-    
     
     if (i < route.substations.length - 1 && station.stopTime) {
       currentTime = addMinutes(currentTime, station.stopTime);
@@ -597,63 +592,25 @@ function setupScheduleEvents() {
 }
 
 function simulateRealTimeUpdates() {
-  // First remove any trains that have departed (and aren't delayed)
-  trainSchedule = trainSchedule.filter(train => 
-    !isTimePassed(train.departure) || train.status.includes("Delayed")
-  );
-
-  // Get only trains that haven't departed yet for status changes
-  const upcomingTrains = trainSchedule.filter(train => !isTimePassed(train.departure));
+  // Just update the alerts randomly
+  const randomAction = Math.random();
   
-  if (upcomingTrains.length > 0) {
-    const randomIndex = Math.floor(Math.random() * upcomingTrains.length);
-    const randomTrain = upcomingTrains[randomIndex];
-    const randomAction = Math.random();
-    
-    if (randomAction < 0.6) { // 60% chance for on time
-      document.getElementById('realTimeUpdate').textContent = `Train ${randomTrain.trainNumber} is running on schedule`;
-      document.getElementById('passengerAlert').textContent = "No delays expected";
-      document.getElementById('safetyAlert').textContent = "All systems operational";
-    } 
-    else if (randomAction < 0.9) { // 30% chance for delay
-      const delayMinutes = Math.floor(Math.random() * 30) + 5;
-      randomTrain.status = `Delayed by ${delayMinutes} min`;
-      
-      // Calculate new departure time
-      const [hours, mins] = randomTrain.departure.split(':').map(Number);
-      const departureDate = new Date();
-      departureDate.setHours(hours, mins + delayMinutes, 0, 0);
-      
-      const newDeparture = `${String(departureDate.getHours()).padStart(2, '0')}:${String(departureDate.getMinutes()).padStart(2, '0')}`;
-      randomTrain.departure = newDeparture;
-      
-      document.getElementById('realTimeUpdate').textContent = `Train ${randomTrain.trainNumber} is delayed by ${delayMinutes} minutes. New departure: ${newDeparture}`;
-      document.getElementById('passengerAlert').textContent = `Expect delays on ${routes[randomTrain.route].name} route`;
-      document.getElementById('safetyAlert').textContent = "Delay due to operational requirements";
-    } 
-    else { // 10% chance for cancellation
-      randomTrain.status = "Cancelled";
-      // Remove from schedule
-      const indexToRemove = trainSchedule.findIndex(t => t.trainNumber === randomTrain.trainNumber);
-      if (indexToRemove !== -1) {
-        trainSchedule.splice(indexToRemove, 1);
-      }
-      
-      document.getElementById('realTimeUpdate').textContent = `Train ${randomTrain.trainNumber} has been cancelled`;
-      document.getElementById('passengerAlert').textContent = `Please seek alternative transportation for ${routes[randomTrain.route].name} route`;
-      document.getElementById('safetyAlert').textContent = "Service suspended due to safety inspection";
-    }
-  } else {
-    // No upcoming trains to modify
-    document.getElementById('realTimeUpdate').textContent = "No schedule changes for upcoming trains";
-    document.getElementById('passengerAlert').textContent = "All trains running as scheduled";
+  if (randomAction < 0.6) { // 60% chance for on time
+    document.getElementById('realTimeUpdate').textContent = "All trains running on schedule";
+    document.getElementById('passengerAlert').textContent = "No delays expected";
     document.getElementById('safetyAlert').textContent = "All systems operational";
+  } 
+  else if (randomAction < 0.9) { // 30% chance for generic delay message
+    document.getElementById('realTimeUpdate').textContent = "Some trains may experience minor delays";
+    document.getElementById('passengerAlert').textContent = "Check your specific train for updates";
+    document.getElementById('safetyAlert').textContent = "Delays due to operational requirements";
+  } 
+  else { // 10% chance for generic cancellation message
+    document.getElementById('realTimeUpdate').textContent = "Some services may be cancelled";
+    document.getElementById('passengerAlert').textContent = "Please check your specific train status";
+    document.getElementById('safetyAlert').textContent = "Service adjustments due to safety inspections";
   }
-  
-  // Update the displayed schedule
-  filterByRoute();
 }
-
 
 function initFAQPage() {
   renderFAQs();
@@ -730,7 +687,6 @@ function setupFAQEvents() {
   });
 }
 
-
 function updateDateTime() {
   const now = new Date();
   const options = { 
@@ -759,14 +715,13 @@ function filterRows() {
   });
 }
 
-//AUDREY JS
+// Slideshow functionality
 let slideIndex = 0;
 showSlides();
 
 function showSlides() {
   let slides = document.getElementsByClassName("slide");
 
-  
   for (let i = 0; i < slides.length; i++) {
     slides[i].style.display = "none";
   }
@@ -781,7 +736,5 @@ function showSlides() {
   // Change image every 5 seconds
   setTimeout(showSlides, 5000);
 }
-
-
 
 document.addEventListener('DOMContentLoaded', init);
