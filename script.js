@@ -7,10 +7,8 @@ let originMarker, destMarker, routeLine;
 let currentRouteIndex = 0;
 let routeInterval;
 
-// Initialize Firebase only if the configuration is valid
-let db;
-try {
-  const firebaseConfig = {
+// Initialize Firebase
+const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
   projectId: "metro-rail-2de9c",
@@ -19,15 +17,8 @@ try {
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  db = firebase.firestore();
-  console.log("Firebase initialized successfully");
-} catch (error) {
-  console.error("Firebase initialization error:", error);
-  // Fallback to static data if Firebase fails
-  db = null;
-}
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // Home page route data
 const homeRoutes = [
@@ -140,7 +131,7 @@ const routes = {
     }
 };
 
-// Train schedule (will be populated from Firestore or static data)
+// Train schedule (now populated from Firestore)
 let trainSchedule = [];
 
 // FAQ data
@@ -197,188 +188,36 @@ const faqData = [
   }
 ];
 
-// =============================================
-// CORE FUNCTIONS
-// =============================================
-
-// =============================================
-// UPDATED SCHEDULE FUNCTIONS
-// =============================================
-
-function initFirebaseListener() {
-  if (!db) {
-    console.log("Firebase not available, using static data");
-    trainSchedule = getStaticScheduleData();
+function init() {
+  // Fetch train schedules from Firestore
+  db.collection("trainSchedules").onSnapshot((snapshot) => {
+    trainSchedule = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      trainSchedule.push({
+        trainNumber: data.trainNumber,
+        route: data.route,
+        departure: data.departure,
+        arrival: data.arrival,
+        status: data.status || "On Time" // Default to "On Time" if status not set
+      });
+    });
+    
+    // If we're on the schedule page, refresh the view
     if (location.hash.includes('schedule')) {
       filterByRoute();
     }
-    return;
-  }
-
-  db.collection("trainSchedules").onSnapshot(
-    (snapshot) => {
-      console.log("Firestore data received, documents:", snapshot.size);
-      trainSchedule = [];
-      
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log("Document data:", data); // Debug log
-        trainSchedule.push({
-          trainNumber: data.trainNumber || "N/A",
-          route: data.route || "",
-          departure: data.departure || "00:00",
-          arrival: data.arrival || "00:00",
-          status: data.status || "On Time"
-        });
-      });
-      
-      console.log("Processed schedule data:", trainSchedule); // Debug log
-      
-      if (location.hash.includes('schedule')) {
-        filterByRoute();
-      }
-    },
-    (error) => {
-      console.error("Firestore error:", error);
-      trainSchedule = getStaticScheduleData();
-      if (location.hash.includes('schedule')) {
-        filterByRoute();
-      }
-    }
-  );
-}
-
-function filterByRoute() {
-  const routeSelect = document.getElementById('routeSelect');
-  const selectedRoute = routeSelect ? routeSelect.value : 'all';
-  const tbody = document.querySelector("#trainSchedule tbody");
-  
-  if (!tbody) {
-    console.error("Schedule table body not found");
-    return;
-  }
-  
-  console.log("Filtering by route:", selectedRoute, "with data:", trainSchedule); // Debug log
-  
-  tbody.innerHTML = "";
-  
-  if (trainSchedule.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="loading">No schedule data available</td>
-      </tr>
-    `;
-    return;
-  }
-
-  // Filter trains based on selected route and time
-  const filteredTrains = trainSchedule.filter(train => {
-    const isSelectedRoute = selectedRoute === "all" || train.route === selectedRoute;
-    const isUpcomingOrDelayed = !isTimePassed(train.departure) || train.status.includes("Delayed");
-    return isSelectedRoute && isUpcomingOrDelayed;
   });
 
-  if (filteredTrains.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6">No trains available for the selected criteria</td>
-      </tr>
-    `;
-    return;
-  }
+  // Set up event listeners
+  window.addEventListener('hashchange', () => {
+    const hash = location.hash.replace('#', '') || 'home';
+    showPage(hash);
+  });
 
-  if (selectedRoute === "all") {
-    // Show simplified view for all routes
-    filteredTrains.forEach(train => {
-      const routeInfo = routes[train.route];
-      if (routeInfo) {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${train.trainNumber}</td>
-          <td>${routeInfo.name}</td>
-          <td>${train.departure}</td>
-          <td>${train.arrival}</td>
-          <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
-          <td>${routeInfo.price}</td>
-        `;
-        tbody.appendChild(row);
-      }
-    });
-  } else {
-    // Show detailed view for specific route
-    const route = routes[selectedRoute];
-    if (!route) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="error">Invalid route selected</td>
-        </tr>
-      `;
-      return;
-    }
-
-    filteredTrains.forEach(train => {
-      const headerRow = document.createElement("tr");
-      headerRow.className = "train-header";
-      headerRow.innerHTML = `
-        <td colspan="6">
-          <strong>Train ${train.trainNumber}</strong> - Departure: ${train.departure} | 
-          Arrival: ${train.arrival} | Status: <span class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</span>
-        </td>
-      `;
-      tbody.appendChild(headerRow);
-      
-      const detailedSchedule = generateDetailedSchedule(route, train.departure);
-      detailedSchedule.forEach(stop => {
-        const row = document.createElement("tr");
-        row.className = "substation-schedule";
-        row.innerHTML = `
-          <td></td>
-          <td>${stop.station}</td>
-          <td>${stop.time}</td>
-          <td>${stop.action}</td>
-          <td></td>
-          <td></td>
-        `;
-        tbody.appendChild(row);
-      });
-    });
-  }
-  
-  updateMapForRoute(selectedRoute);
-}
-
-function getStaticScheduleData() {
-  console.log("Using static schedule data");
-  return [
-    {
-      trainNumber: "T100",
-      route: "saulsville-pretoria",
-      departure: "06:00",
-      arrival: "07:30",
-      status: "On Time"
-    },
-    {
-      trainNumber: "T200",
-      route: "pretoria-saulsville",
-      departure: "07:00",
-      arrival: "08:30",
-      status: "On Time"
-    },
-    {
-      trainNumber: "T300",
-      route: "dewildt-pretoria",
-      departure: "08:00",
-      arrival: "08:45",
-      status: "Delayed"
-    },
-    {
-      trainNumber: "T400",
-      route: "pretoria-dewildt",
-      departure: "09:00",
-      arrival: "09:45",
-      status: "On Time"
-    }
-  ];
+  // Initial page load
+  const hash = location.hash.replace('#', '') || 'home';
+  showPage(hash);
 }
 
 function showPage(pageId) {
@@ -404,10 +243,6 @@ function showPage(pageId) {
     setTimeout(initRoutePage, 50);
   }
 }
-
-// =============================================
-// HOME PAGE FUNCTIONS
-// =============================================
 
 function initRoutePage() {
   initHomeMap();
@@ -570,10 +405,6 @@ function updateAll() {
   updateTrainCountdown();
 }
 
-// =============================================
-// SCHEDULE PAGE FUNCTIONS
-// =============================================
-
 function initSchedulePage() {
   initScheduleMap();
   filterByRoute();
@@ -581,6 +412,7 @@ function initSchedulePage() {
   
   // Initial update
   setTimeout(simulateRealTimeUpdates, 1000);
+  
   setInterval(simulateRealTimeUpdates, 25000);
 }
 
@@ -609,69 +441,45 @@ function showAllRoutes() {
   scheduleMap.fitBounds(allCoords);
 }
 
+function isTimePassed(departureTime) {
+  const now = new Date();
+  const [hours, mins] = departureTime.split(':').map(Number);
+  const departureDate = new Date();
+  departureDate.setHours(hours, mins, 0, 0);
+  return now >= departureDate;
+}
+
 function filterByRoute() {
   const routeSelect = document.getElementById('routeSelect');
   const selectedRoute = routeSelect ? routeSelect.value : 'all';
   const tbody = document.querySelector("#trainSchedule tbody");
   
-  if (!tbody) {
-    console.error("Schedule table body not found");
-    return;
-  }
+  if (!tbody) return;
   
   tbody.innerHTML = "";
   
-  if (trainSchedule.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="loading">Loading schedule data...</td>
-      </tr>
-    `;
-    return;
-  }
-
   if (selectedRoute === "all") {
     trainSchedule.forEach(train => {
       if (!isTimePassed(train.departure) || train.status.includes("Delayed")) {
         const routeInfo = routes[train.route];
-        if (routeInfo) {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${train.trainNumber}</td>
-            <td>${routeInfo.name}</td>
-            <td>${train.departure}</td>
-            <td>${train.arrival}</td>
-            <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
-            <td>${routeInfo.price}</td>
-          `;
-          tbody.appendChild(row);
-        }
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${train.trainNumber}</td>
+          <td>${routeInfo.name}</td>
+          <td>${train.departure}</td>
+          <td>${train.arrival}</td>
+          <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
+          <td>${routeInfo.price}</td>
+        `;
+        tbody.appendChild(row);
       }
     });
   } else {
     const route = routes[selectedRoute];
-    if (!route) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6" class="error">Invalid route selected</td>
-        </tr>
-      `;
-      return;
-    }
-    
     const routeTrains = trainSchedule.filter(train => 
       train.route === selectedRoute && 
       (!isTimePassed(train.departure) || train.status.includes("Delayed"))
     );
-    
-    if (routeTrains.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="6">No upcoming trains for this route</td>
-        </tr>
-      `;
-      return;
-    }
     
     routeTrains.forEach(train => {
       const headerRow = document.createElement("tr");
@@ -702,14 +510,6 @@ function filterByRoute() {
   }
   
   updateMapForRoute(selectedRoute);
-}
-
-function isTimePassed(departureTime) {
-  const now = new Date();
-  const [hours, mins] = departureTime.split(':').map(Number);
-  const departureDate = new Date();
-  departureDate.setHours(hours, mins, 0, 0);
-  return now >= departureDate;
 }
 
 function generateDetailedSchedule(route, departureTime) {
@@ -792,28 +592,25 @@ function setupScheduleEvents() {
 }
 
 function simulateRealTimeUpdates() {
+  // Just update the alerts randomly
   const randomAction = Math.random();
   
-  if (randomAction < 0.6) {
+  if (randomAction < 0.6) { // 60% chance for on time
     document.getElementById('realTimeUpdate').textContent = "All trains running on schedule";
     document.getElementById('passengerAlert').textContent = "No delays expected";
     document.getElementById('safetyAlert').textContent = "All systems operational";
   } 
-  else if (randomAction < 0.9) {
+  else if (randomAction < 0.9) { // 30% chance for generic delay message
     document.getElementById('realTimeUpdate').textContent = "Some trains may experience minor delays";
     document.getElementById('passengerAlert').textContent = "Check your specific train for updates";
     document.getElementById('safetyAlert').textContent = "Delays due to operational requirements";
   } 
-  else {
+  else { // 10% chance for generic cancellation message
     document.getElementById('realTimeUpdate').textContent = "Some services may be cancelled";
     document.getElementById('passengerAlert').textContent = "Please check your specific train status";
     document.getElementById('safetyAlert').textContent = "Service adjustments due to safety inspections";
   }
 }
-
-// =============================================
-// FAQ PAGE FUNCTIONS
-// =============================================
 
 function initFAQPage() {
   renderFAQs();
@@ -908,10 +705,6 @@ function updateDateTime() {
   if (yearEl) yearEl.textContent = now.getFullYear();
 }
 
-// =============================================
-// UTILITY FUNCTIONS
-// =============================================
-
 function filterRows() {
   const query = document.getElementById("search").value.toLowerCase();
   const rows = document.querySelectorAll("#schedule-table tbody tr");
@@ -933,12 +726,15 @@ function showSlides() {
     slides[i].style.display = "none";
   }
 
+  // Move to the next slide
   slideIndex++;
   if (slideIndex > slides.length) { slideIndex = 1 }
 
+  // Show current slide
   slides[slideIndex - 1].style.display = "block";
+
+  // Change image every 5 seconds
   setTimeout(showSlides, 5000);
 }
 
-// Initialize the application
 document.addEventListener('DOMContentLoaded', init);
