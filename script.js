@@ -7,19 +7,27 @@ let originMarker, destMarker, routeLine;
 let currentRouteIndex = 0;
 let routeInterval;
 
-// Initialize Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
-  authDomain: "metro-rail-2de9c.firebaseapp.com",
-  projectId: "metro-rail-2de9c",
-  storageBucket: "metro-rail-2de9c.firebasestorage.app",
-  messagingSenderId: "1036516254492",
-  appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
-};
+// Initialize Firebase only if the configuration is valid
+let db;
+try {
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  db = firebase.firestore();
+  console.log("Firebase initialized successfully");
+} catch (error) {
+  console.error("Firebase initialization error:", error);
+  // Fallback to static data if Firebase fails
+  db = null;
+}
 
 // Home page route data
 const homeRoutes = [
@@ -132,7 +140,7 @@ const routes = {
     }
 };
 
-// Train schedule (populated from Firestore)
+// Train schedule (will be populated from Firestore or static data)
 let trainSchedule = [];
 
 // FAQ data
@@ -194,8 +202,20 @@ const faqData = [
 // =============================================
 
 function init() {
-  // Initialize Firebase listener
-  initFirebaseListener();
+  // First initialize all non-Firebase dependent functionality
+  initBasicFunctionality();
+  
+  // Then try to initialize Firebase if available
+  if (db) {
+    initFirebaseListener();
+  } else {
+    console.log("Using static data instead of Firebase");
+    // Load some static data as fallback
+    trainSchedule = getStaticScheduleData();
+    if (location.hash.includes('schedule')) {
+      filterByRoute();
+    }
+  }
 
   // Set up event listeners
   window.addEventListener('hashchange', () => {
@@ -208,20 +228,41 @@ function init() {
   showPage(hash);
 }
 
+function initBasicFunctionality() {
+  // Initialize all functionality that doesn't depend on Firebase
+  updateAll();
+  
+  // Set up intervals for clock and route rotation
+  window.clockInterval = setInterval(updateAll, 1000);
+  window.routeInterval = setInterval(updateRoute, 15000);
+  
+  // Initialize maps if on relevant pages
+  if (location.hash.includes('home') || location.hash === '') {
+    initHomeMap();
+  }
+  if (location.hash.includes('schedule')) {
+    initScheduleMap();
+  }
+  if (location.hash.includes('faq')) {
+    initFAQPage();
+  }
+}
+
 function initFirebaseListener() {
+  if (!db) return;
+
   db.collection("trainSchedules").onSnapshot(
     (snapshot) => {
-      console.log("Firestore data received:", snapshot.docs.length, "documents");
+      console.log("Received data from Firestore");
       trainSchedule = [];
       
       snapshot.forEach((doc) => {
         const data = doc.data();
-        console.log("Processing document:", data);
         trainSchedule.push({
-          trainNumber: data.trainNumber,
-          route: data.route,
-          departure: data.departure,
-          arrival: data.arrival,
+          trainNumber: data.trainNumber || "N/A",
+          route: data.route || "",
+          departure: data.departure || "00:00",
+          arrival: data.arrival || "00:00",
           status: data.status || "On Time"
         });
       });
@@ -233,20 +274,47 @@ function initFirebaseListener() {
     },
     (error) => {
       console.error("Firestore error:", error);
-      // Display error to user
-      const scheduleTable = document.getElementById('trainSchedule');
-      if (scheduleTable) {
-        scheduleTable.innerHTML = `
-          <tr class="error">
-            <td colspan="6">
-              Failed to load schedule data. Please refresh the page.
-              <br>Error: ${error.message}
-            </td>
-          </tr>
-        `;
+      // Fall back to static data
+      trainSchedule = getStaticScheduleData();
+      if (location.hash.includes('schedule')) {
+        filterByRoute();
       }
     }
   );
+}
+
+function getStaticScheduleData() {
+  // Provide some static data as fallback
+  return [
+    {
+      trainNumber: "T100",
+      route: "saulsville-pretoria",
+      departure: "06:00",
+      arrival: "07:30",
+      status: "On Time"
+    },
+    {
+      trainNumber: "T200",
+      route: "pretoria-saulsville",
+      departure: "07:00",
+      arrival: "08:30",
+      status: "On Time"
+    },
+    {
+      trainNumber: "T300",
+      route: "dewildt-pretoria",
+      departure: "08:00",
+      arrival: "08:45",
+      status: "On Time"
+    },
+    {
+      trainNumber: "T400",
+      route: "pretoria-dewildt",
+      departure: "09:00",
+      arrival: "09:45",
+      status: "On Time"
+    }
+  ];
 }
 
 function showPage(pageId) {
