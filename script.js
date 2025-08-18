@@ -201,63 +201,28 @@ const faqData = [
 // CORE FUNCTIONS
 // =============================================
 
-function init() {
-  // First initialize all non-Firebase dependent functionality
-  initBasicFunctionality();
-  
-  // Then try to initialize Firebase if available
-  if (db) {
-    initFirebaseListener();
-  } else {
-    console.log("Using static data instead of Firebase");
-    // Load some static data as fallback
+// =============================================
+// UPDATED SCHEDULE FUNCTIONS
+// =============================================
+
+function initFirebaseListener() {
+  if (!db) {
+    console.log("Firebase not available, using static data");
     trainSchedule = getStaticScheduleData();
     if (location.hash.includes('schedule')) {
       filterByRoute();
     }
+    return;
   }
-
-  // Set up event listeners
-  window.addEventListener('hashchange', () => {
-    const hash = location.hash.replace('#', '') || 'home';
-    showPage(hash);
-  });
-
-  // Initial page load
-  const hash = location.hash.replace('#', '') || 'home';
-  showPage(hash);
-}
-
-function initBasicFunctionality() {
-  // Initialize all functionality that doesn't depend on Firebase
-  updateAll();
-  
-  // Set up intervals for clock and route rotation
-  window.clockInterval = setInterval(updateAll, 1000);
-  window.routeInterval = setInterval(updateRoute, 15000);
-  
-  // Initialize maps if on relevant pages
-  if (location.hash.includes('home') || location.hash === '') {
-    initHomeMap();
-  }
-  if (location.hash.includes('schedule')) {
-    initScheduleMap();
-  }
-  if (location.hash.includes('faq')) {
-    initFAQPage();
-  }
-}
-
-function initFirebaseListener() {
-  if (!db) return;
 
   db.collection("trainSchedules").onSnapshot(
     (snapshot) => {
-      console.log("Received data from Firestore");
+      console.log("Firestore data received, documents:", snapshot.size);
       trainSchedule = [];
       
       snapshot.forEach((doc) => {
         const data = doc.data();
+        console.log("Document data:", data); // Debug log
         trainSchedule.push({
           trainNumber: data.trainNumber || "N/A",
           route: data.route || "",
@@ -267,14 +232,14 @@ function initFirebaseListener() {
         });
       });
       
-      // Update UI if on schedule page
+      console.log("Processed schedule data:", trainSchedule); // Debug log
+      
       if (location.hash.includes('schedule')) {
         filterByRoute();
       }
     },
     (error) => {
       console.error("Firestore error:", error);
-      // Fall back to static data
       trainSchedule = getStaticScheduleData();
       if (location.hash.includes('schedule')) {
         filterByRoute();
@@ -283,8 +248,107 @@ function initFirebaseListener() {
   );
 }
 
+function filterByRoute() {
+  const routeSelect = document.getElementById('routeSelect');
+  const selectedRoute = routeSelect ? routeSelect.value : 'all';
+  const tbody = document.querySelector("#trainSchedule tbody");
+  
+  if (!tbody) {
+    console.error("Schedule table body not found");
+    return;
+  }
+  
+  console.log("Filtering by route:", selectedRoute, "with data:", trainSchedule); // Debug log
+  
+  tbody.innerHTML = "";
+  
+  if (trainSchedule.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="loading">No schedule data available</td>
+      </tr>
+    `;
+    return;
+  }
+
+  // Filter trains based on selected route and time
+  const filteredTrains = trainSchedule.filter(train => {
+    const isSelectedRoute = selectedRoute === "all" || train.route === selectedRoute;
+    const isUpcomingOrDelayed = !isTimePassed(train.departure) || train.status.includes("Delayed");
+    return isSelectedRoute && isUpcomingOrDelayed;
+  });
+
+  if (filteredTrains.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6">No trains available for the selected criteria</td>
+      </tr>
+    `;
+    return;
+  }
+
+  if (selectedRoute === "all") {
+    // Show simplified view for all routes
+    filteredTrains.forEach(train => {
+      const routeInfo = routes[train.route];
+      if (routeInfo) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${train.trainNumber}</td>
+          <td>${routeInfo.name}</td>
+          <td>${train.departure}</td>
+          <td>${train.arrival}</td>
+          <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
+          <td>${routeInfo.price}</td>
+        `;
+        tbody.appendChild(row);
+      }
+    });
+  } else {
+    // Show detailed view for specific route
+    const route = routes[selectedRoute];
+    if (!route) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="error">Invalid route selected</td>
+        </tr>
+      `;
+      return;
+    }
+
+    filteredTrains.forEach(train => {
+      const headerRow = document.createElement("tr");
+      headerRow.className = "train-header";
+      headerRow.innerHTML = `
+        <td colspan="6">
+          <strong>Train ${train.trainNumber}</strong> - Departure: ${train.departure} | 
+          Arrival: ${train.arrival} | Status: <span class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</span>
+        </td>
+      `;
+      tbody.appendChild(headerRow);
+      
+      const detailedSchedule = generateDetailedSchedule(route, train.departure);
+      detailedSchedule.forEach(stop => {
+        const row = document.createElement("tr");
+        row.className = "substation-schedule";
+        row.innerHTML = `
+          <td></td>
+          <td>${stop.station}</td>
+          <td>${stop.time}</td>
+          <td>${stop.action}</td>
+          <td></td>
+          <td></td>
+        `;
+        tbody.appendChild(row);
+      });
+    });
+  }
+  
+  updateMapForRoute(selectedRoute);
+}
+
 function getStaticScheduleData() {
-  // Provide some static data as fallback
+  console.log("Using static schedule data");
   return [
     {
       trainNumber: "T100",
@@ -305,7 +369,7 @@ function getStaticScheduleData() {
       route: "dewildt-pretoria",
       departure: "08:00",
       arrival: "08:45",
-      status: "On Time"
+      status: "Delayed"
     },
     {
       trainNumber: "T400",
