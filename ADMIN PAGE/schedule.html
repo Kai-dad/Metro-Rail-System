@@ -2,59 +2,118 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  
   <title>Admin Panel – Schedule</title>
-  <link rel="stylesheet" href="cascading stylesheet/schedule.css"/>
-  <link rel="javascript" href="javascript/schedule.js"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="cascading stylesheet/styles.css"/>
-
 </head>
 <body>
- <div class="container">
+  <div class="container">
     <aside class="sidebar">
       <div class="brand">🚆 Metrorail Admin</div>
       <p class="status">🟢 System Operational</p>
       <nav>
         <a href="index.html">Dashboard</a>
         <a href="schedule.html" class="active">Schedule Management</a>
-        <a href="notification.html" >Notifications</a>
+        <a href="notification.html">Notifications</a>
         <a href="station.html">Station Management</a>
-        <a href="user management.html">User Management</a>
+        <a href="user-management.html">User Management</a>
         <a href="system-settings.html">System Settings</a>
       </nav>
       <div class="logout">
         <p>👤 Administrator</p>
-        <button>Logout</button>
+        <button id="logoutBtn">Logout</button>
       </div>
     </aside>
 
     <main class="schedule">
       <header>
-        <input type="search" placeholder="Search schedule...">
+        <input type="search" id="scheduleSearch" placeholder="Search schedule...">
         <div class="user-info">
-          <span>🔔</span>
+          <span class="notification-bell">🔔 <span class="badge">0</span></span>
           <span class="admin-user">👤 Admin User<br><small>Super Administrator</small></span>
         </div>
-      </header> 
+      </header>
 
-  <h1>Update Train Schedule</h1>
-  
-  <table id="editTable">
-    <thead>
-      <tr id="trainHeader">
-        <th>Station \ Train No.</th>
-        <!-- Train numbers will be populated by JS -->
-      </tr>
-    </thead>
-    <tbody id="scheduleBody">
-      <!-- Filled by JS -->
-    </tbody>
-  </table>
-  <div style="text-align: center;">
-    <button onclick="saveSchedule()">Save Schedule</button>
+      <div class="admin-content">
+        <h1>Train Schedule Management</h1>
+        
+        <div class="admin-controls">
+          <button id="addTrainBtn" class="btn-primary">
+            <i class="fas fa-plus"></i> Add New Train
+          </button>
+          <select id="routeFilter">
+            <option value="all">All Routes</option>
+            <option value="saulsville-pretoria">Saulsville → Pretoria</option>
+            <option value="pretoria-saulsville">Pretoria → Saulsville</option>
+            <option value="dewildt-pretoria">De Wildt → Pretoria</option>
+            <option value="pretoria-dewildt">Pretoria → De Wildt</option>
+          </select>
+        </div>
+
+        <div class="train-form-container" id="trainFormContainer" style="display: none;">
+          <h2>Add/Edit Train Schedule</h2>
+          <form id="trainForm">
+            <input type="hidden" id="editTrainId">
+            <div class="form-group">
+              <label for="trainNumber">Train Number</label>
+              <input type="text" id="trainNumber" required>
+            </div>
+            <div class="form-group">
+              <label for="trainRoute">Route</label>
+              <select id="trainRoute" required>
+                <option value="saulsville-pretoria">Saulsville → Pretoria</option>
+                <option value="pretoria-saulsville">Pretoria → Saulsville</option>
+                <option value="dewildt-pretoria">De Wildt → Pretoria</option>
+                <option value="pretoria-dewildt">Pretoria → De Wildt</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="departureTime">Departure Time</label>
+              <input type="time" id="departureTime" required>
+            </div>
+            <div class="form-group">
+              <label for="arrivalTime">Arrival Time</label>
+              <input type="time" id="arrivalTime" required>
+            </div>
+            <div class="form-group">
+              <label for="trainStatus">Status</label>
+              <select id="trainStatus">
+                <option value="On Time">On Time</option>
+                <option value="Delayed">Delayed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn-primary">Save</button>
+              <button type="button" id="cancelFormBtn" class="btn-secondary">Cancel</button>
+            </div>
+          </form>
+        </div>
+
+        <table id="scheduleTable">
+          <thead>
+            <tr>
+              <th>Train Number</th>
+              <th>Route</th>
+              <th>Departure</th>
+              <th>Arrival</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="scheduleTableBody">
+            <!-- Will be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
 
- 
-<script src="javascript/schedule.js"></script>
+  <!-- Add Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  
+  <script src="javascript/schedule.js"></script>
 </body>
 </html>
