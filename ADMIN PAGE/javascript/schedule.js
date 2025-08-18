@@ -1,12 +1,11 @@
 // Initialize Firebase
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  databaseURL: "YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
+  authDomain: "metro-rail-2de9c.firebaseapp.com",
+  projectId: "metro-rail-2de9c",
+  storageBucket: "metro-rail-2de9c.firebasestorage.app",
+  messagingSenderId: "1036516254492",
+  appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
 
 // Initialize Firebase
@@ -227,3 +226,4 @@ function filterSchedules() {
 
 // Initialize the admin interface when DOM is loaded
 document.addEventListener('DOMContentLoaded', initAdminSchedule);
+
