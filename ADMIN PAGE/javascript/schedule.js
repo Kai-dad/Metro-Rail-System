@@ -1,61 +1,229 @@
+// Initialize Firebase
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  databaseURL: "YOUR_DATABASE_URL",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-    const stations = [
-      "PRETORIA", "PRETORIA-B", "BARRACKS", "PRETORIA WES", "MITCHELLSTRAAT", "REBECCA",
-      "ELECTRO", "COR DELFOS", "KALAFONG", "ATTERIDGEVILLE", "SAULSVILLE"
-    ];
-    const trainNos = ["0003","0005","0007","0009","0011","0013","0015","0017","0019","0021","0023","0025","0027","0029"];
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const auth = firebase.auth();
 
-    const scheduleBody = document.getElementById("scheduleBody");
-    const trainHeader = document.getElementById("trainHeader");
+// Reference to the train schedules in Firebase
+const trainsRef = database.ref('trainSchedules');
 
-    function loadSchedule() {
-      // Load or initialize header
-      const headerData = JSON.parse(localStorage.getItem("trainHeaders") || "null") || trainNos;
-      
-      // Create header cells with editable train numbers
-      trainHeader.innerHTML = '<th class="station-cell">Station \ Train No.</th>' + 
-        headerData.map(num => `
-          <th>
-            <input type="text" value="${num}" class="train-number-input">
-            <span class="edit-icon">✏️</span>
-          </th>
-        `).join('');
-      
-      // Add event listeners to header inputs
-      document.querySelectorAll('.train-number-input').forEach(input => {
-        input.addEventListener('change', updateTrainNumbers);
-      });
-      
-      // Load schedule data
-      const data = JSON.parse(localStorage.getItem("trainSchedule") || "[]");
-      stations.forEach((station, i) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `<td class="station-cell"><strong>${station}</strong></td>` +
-          headerData.map((_, j) => `<td><input type="text" value="${(data[i] && data[i][j]) || ''}"></td>`).join('');
-        scheduleBody.appendChild(row);
-      });
+// DOM elements
+const scheduleTableBody = document.getElementById('scheduleTableBody');
+const trainForm = document.getElementById('trainForm');
+const addTrainBtn = document.getElementById('addTrainBtn');
+const cancelFormBtn = document.getElementById('cancelFormBtn');
+const trainFormContainer = document.getElementById('trainFormContainer');
+const routeFilter = document.getElementById('routeFilter');
+
+// Current editing state
+let isEditing = false;
+let currentEditId = null;
+
+// Initialize the admin interface
+function initAdminSchedule() {
+  // Load all train schedules
+  loadTrainSchedules();
+  
+  // Set up event listeners
+  addTrainBtn.addEventListener('click', showAddTrainForm);
+  cancelFormBtn.addEventListener('click', hideTrainForm);
+  trainForm.addEventListener('submit', handleFormSubmit);
+  routeFilter.addEventListener('change', filterSchedules);
+  
+  // Check auth state
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = 'login.html';
     }
+  });
+  
+  // Logout button
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut().then(() => {
+      window.location.href = 'login.html';
+    });
+  });
+}
 
-    function updateTrainNumbers() {
-      const inputs = document.querySelectorAll('.train-number-input');
-      const newTrainNos = Array.from(inputs).map(input => input.value.trim());
-      localStorage.setItem("trainHeaders", JSON.stringify(newTrainNos));
+// Load train schedules from Firebase
+function loadTrainSchedules() {
+  trainsRef.on('value', (snapshot) => {
+    const trains = snapshot.val() || {};
+    renderTrainSchedules(trains);
+  });
+}
+
+// Render train schedules to the table
+function renderTrainSchedules(trains) {
+  scheduleTableBody.innerHTML = '';
+  
+  Object.entries(trains).forEach(([id, train]) => {
+    const routeInfo = getRouteInfo(train.route);
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${train.trainNumber}</td>
+      <td>${routeInfo.name}</td>
+      <td>${train.departure}</td>
+      <td>${train.arrival}</td>
+      <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
+      <td class="actions">
+        <button class="btn-edit" data-id="${id}"><i class="fas fa-edit"></i></button>
+        <button class="btn-delete" data-id="${id}"><i class="fas fa-trash"></i></button>
+      </td>
+    `;
+    
+    scheduleTableBody.appendChild(row);
+  });
+  
+  // Add event listeners to edit/delete buttons
+  document.querySelectorAll('.btn-edit').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const trainId = e.currentTarget.dataset.id;
+      editTrainSchedule(trainId);
+    });
+  });
+  
+  document.querySelectorAll('.btn-delete').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const trainId = e.currentTarget.dataset.id;
+      deleteTrainSchedule(trainId);
+    });
+  });
+}
+
+// Get route info from the predefined routes
+function getRouteInfo(routeKey) {
+  const routes = {
+    "saulsville-pretoria": {
+      name: "Saulsville → Pretoria",
+      price: "R5.50"
+    },
+    "pretoria-saulsville": {
+      name: "Pretoria → Saulsville",
+      price: "R5.50"
+    },
+    "dewildt-pretoria": {
+      name: "De Wildt → Pretoria",
+      price: "R6.80"
+    },
+    "pretoria-dewildt": {
+      name: "Pretoria → De Wildt",
+      price: "R7.20"
     }
+  };
+  
+  return routes[routeKey] || { name: routeKey, price: "N/A" };
+}
 
-    function saveSchedule() {
-      // Save train numbers
-      updateTrainNumbers();
-      
-      // Save schedule data
-      const data = [];
-      const rows = scheduleBody.querySelectorAll("tr");
-      rows.forEach(row => {
-        const inputs = row.querySelectorAll("input:not(.train-number-input)");
-        const rowData = Array.from(inputs).map(input => input.value.trim());
-        data.push(rowData);
+// Show add train form
+function showAddTrainForm() {
+  isEditing = false;
+  currentEditId = null;
+  trainForm.reset();
+  document.getElementById('editTrainId').value = '';
+  trainFormContainer.style.display = 'block';
+}
+
+// Hide train form
+function hideTrainForm() {
+  trainFormContainer.style.display = 'none';
+}
+
+// Handle form submission
+function handleFormSubmit(e) {
+  e.preventDefault();
+  
+  const trainData = {
+    trainNumber: document.getElementById('trainNumber').value,
+    route: document.getElementById('trainRoute').value,
+    departure: document.getElementById('departureTime').value,
+    arrival: document.getElementById('arrivalTime').value,
+    status: document.getElementById('trainStatus').value
+  };
+  
+  if (isEditing && currentEditId) {
+    // Update existing train
+    trainsRef.child(currentEditId).update(trainData)
+      .then(() => {
+        alert('Train schedule updated successfully!');
+        hideTrainForm();
+      })
+      .catch(error => {
+        alert('Error updating train: ' + error.message);
       });
-      localStorage.setItem("trainSchedule", JSON.stringify(data));
-      alert("Schedule saved successfully!");
-    }
+  } else {
+    // Add new train
+    trainsRef.push(trainData)
+      .then(() => {
+        alert('Train schedule added successfully!');
+        hideTrainForm();
+      })
+      .catch(error => {
+        alert('Error adding train: ' + error.message);
+      });
+  }
+}
 
-    loadSchedule();
+// Edit train schedule
+function editTrainSchedule(trainId) {
+  trainsRef.child(trainId).once('value', (snapshot) => {
+    const train = snapshot.val();
+    if (train) {
+      isEditing = true;
+      currentEditId = trainId;
+      
+      document.getElementById('editTrainId').value = trainId;
+      document.getElementById('trainNumber').value = train.trainNumber;
+      document.getElementById('trainRoute').value = train.route;
+      document.getElementById('departureTime').value = train.departure;
+      document.getElementById('arrivalTime').value = train.arrival;
+      document.getElementById('trainStatus').value = train.status;
+      
+      trainFormContainer.style.display = 'block';
+    }
+  });
+}
+
+// Delete train schedule
+function deleteTrainSchedule(trainId) {
+  if (confirm('Are you sure you want to delete this train schedule?')) {
+    trainsRef.child(trainId).remove()
+      .then(() => {
+        alert('Train schedule deleted successfully!');
+      })
+      .catch(error => {
+        alert('Error deleting train: ' + error.message);
+      });
+  }
+}
+
+// Filter schedules by route
+function filterSchedules() {
+  const selectedRoute = routeFilter.value;
+  
+  if (selectedRoute === 'all') {
+    trainsRef.on('value', (snapshot) => {
+      const trains = snapshot.val() || {};
+      renderTrainSchedules(trains);
+    });
+  } else {
+    trainsRef.orderByChild('route').equalTo(selectedRoute).on('value', (snapshot) => {
+      const trains = snapshot.val() || {};
+      renderTrainSchedules(trains);
+    });
+  }
+}
+
+// Initialize the admin interface when DOM is loaded
+document.addEventListener('DOMContentLoaded', initAdminSchedule);
