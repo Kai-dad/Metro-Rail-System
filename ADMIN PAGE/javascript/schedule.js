@@ -1,3 +1,5 @@
+console.log("Admin schedule script loaded");
+
 // Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
@@ -30,11 +32,18 @@ let currentEditId = null;
 
 // Initialize the admin interface
 function initAdminSchedule() {
+  console.log("Initializing admin schedule");
+  
+  // Debug: Verify button is found
+  console.log("Add train button:", addTrainBtn);
+  
   // Load all train schedules
   loadTrainSchedules();
   
   // Set up event listeners
   addTrainBtn.addEventListener('click', showAddTrainForm);
+  console.log("Event listener added to button");
+  
   cancelFormBtn.addEventListener('click', hideTrainForm);
   trainForm.addEventListener('submit', handleFormSubmit);
   routeFilter.addEventListener('change', filterSchedules);
@@ -127,11 +136,15 @@ function getRouteInfo(routeKey) {
 
 // Show add train form
 function showAddTrainForm() {
+  console.log("Showing add train form");
   isEditing = false;
   currentEditId = null;
   trainForm.reset();
   document.getElementById('editTrainId').value = '';
   trainFormContainer.style.display = 'block';
+  
+  // Scroll to form for better UX
+  trainFormContainer.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Hide train form
@@ -235,5 +248,6 @@ database.ref('trainSchedules').once('value').then((snapshot) => {
 });
 // Initialize the admin interface when DOM is loaded
 document.addEventListener('DOMContentLoaded', initAdminSchedule);
+
 
 
