@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel – Schedule</title>
-  <link rel="stylesheet" href="cascading stylesheet/styles.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel – Schedule Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="admin-style.css">
 </head>
 <body>
   <div class="container">
@@ -16,7 +18,6 @@
         <a href="notification.html">Notifications</a>
         <a href="station.html">Station Management</a>
         <a href="user-management.html">User Management</a>
-        <a href="system-settings.html">System Settings</a>
       </nav>
       <div class="logout">
         <p>👤 Administrator</p>
@@ -26,7 +27,7 @@
 
     <main class="schedule">
       <header>
-        <input type="search" id="scheduleSearch" placeholder="Search schedule...">
+        <input type="search" id="scheduleSearch" placeholder="Search trains...">
         <div class="user-info">
           <span class="notification-bell">🔔 <span class="badge">0</span></span>
           <span class="admin-user">👤 Admin User<br><small>Super Administrator</small></span>
@@ -37,8 +38,8 @@
         <h1>Train Schedule Management</h1>
         
         <div class="admin-controls">
-          <button id="addTrainBtn" class="btn-primary">
-            <i class="fas fa-plus"></i> Add New Train
+          <button id="manageTrainsBtn" class="btn-primary">
+            <i class="fas fa-train"></i> Manage Trains
           </button>
           <select id="routeFilter">
             <option value="all">All Routes</option>
@@ -49,50 +50,96 @@
           </select>
         </div>
 
-        <div class="train-form-container" id="trainFormContainer" style="display: none;">
-          <h2>Add/Edit Train Schedule</h2>
-          <form id="trainForm">
-            <input type="hidden" id="editTrainId">
-            <div class="form-group">
-              <label for="trainNumber">Train Number</label>
-              <input type="text" id="trainNumber" required>
+        <!-- Action Modal -->
+        <div class="action-modal" id="actionModal">
+          <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>Train Management</h3>
+            
+            <div class="action-tabs">
+              <button class="tab-btn active" data-tab="add">Add New Train</button>
+              <button class="tab-btn" data-tab="delay">Delay Train</button>
+              <button class="tab-btn" data-tab="cancel">Cancel Train</button>
             </div>
-            <div class="form-group">
-              <label for="trainRoute">Route</label>
-              <select id="trainRoute" required>
-                <option value="saulsville-pretoria">Saulsville → Pretoria</option>
-                <option value="pretoria-saulsville">Pretoria → Saulsville</option>
-                <option value="dewildt-pretoria">De Wildt → Pretoria</option>
-                <option value="pretoria-dewildt">Pretoria → De Wildt</option>
-              </select>
+            
+            <!-- Add Train Form -->
+            <div id="addTab" class="tab-content active">
+              <form id="addTrainForm">
+                <div class="form-group">
+                  <label for="trainNumber">Train Number*</label>
+                  <input type="text" id="trainNumber" required pattern="[A-Z0-9]{3,6}">
+                </div>
+                <div class="form-group">
+                  <label for="trainRoute">Route*</label>
+                  <select id="trainRoute" required>
+                    <option value="saulsville-pretoria">Saulsville → Pretoria</option>
+                    <option value="pretoria-saulsville">Pretoria → Saulsville</option>
+                    <option value="dewildt-pretoria">De Wildt → Pretoria</option>
+                    <option value="pretoria-dewildt">Pretoria → De Wildt</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="departureTime">Departure*</label>
+                  <input type="time" id="departureTime" required>
+                </div>
+                <div class="form-group">
+                  <label for="arrivalTime">Arrival*</label>
+                  <input type="time" id="arrivalTime" required>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-primary">Add Train</button>
+                </div>
+              </form>
             </div>
-            <div class="form-group">
-              <label for="departureTime">Departure Time</label>
-              <input type="time" id="departureTime" required>
+            
+            <!-- Delay Train Form -->
+            <div id="delayTab" class="tab-content">
+              <form id="delayTrainForm">
+                <div class="form-group">
+                  <label>Select Train to Delay*</label>
+                  <select id="trainToDelay" required>
+                    <option value="">Loading trains...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Delay (minutes)*</label>
+                  <input type="number" id="delayMinutes" min="1" max="120" value="15" required>
+                </div>
+                <div class="form-group">
+                  <label>Reason</label>
+                  <input type="text" id="delayReason" placeholder="(Optional)">
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-warning">Apply Delay</button>
+                </div>
+              </form>
             </div>
-            <div class="form-group">
-              <label for="arrivalTime">Arrival Time</label>
-              <input type="time" id="arrivalTime" required>
+            
+            <!-- Cancel Train Form -->
+            <div id="cancelTab" class="tab-content">
+              <form id="cancelTrainForm">
+                <div class="form-group">
+                  <label>Select Train to Cancel*</label>
+                  <select id="trainToCancel" required>
+                    <option value="">Loading trains...</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Reason</label>
+                  <input type="text" id="cancelReason" placeholder="(Optional)">
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn-danger">Confirm Cancellation</button>
+                </div>
+              </form>
             </div>
-            <div class="form-group">
-              <label for="trainStatus">Status</label>
-              <select id="trainStatus">
-                <option value="On Time">On Time</option>
-                <option value="Delayed">Delayed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-            <div class="form-actions">
-              <button type="submit" class="btn-primary">Save</button>
-              <button type="button" id="cancelFormBtn" class="btn-secondary">Cancel</button>
-            </div>
-          </form>
+          </div>
         </div>
 
         <table id="scheduleTable">
           <thead>
             <tr>
-              <th>Train Number</th>
+              <th>Train No.</th>
               <th>Route</th>
               <th>Departure</th>
               <th>Arrival</th>
@@ -101,19 +148,18 @@
             </tr>
           </thead>
           <tbody id="scheduleTableBody">
-            <!-- Will be populated by JavaScript -->
+            <!-- Filled by JavaScript -->
           </tbody>
         </table>
       </div>
     </main>
   </div>
 
-  <!-- Add Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-  <script src="javascript/schedule.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  
+  <script src="schedule.js"></script>
 </body>
 </html>
-
-
