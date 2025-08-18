@@ -7,7 +7,6 @@ const firebaseConfig = {
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -29,23 +28,12 @@ const routeFilter = document.getElementById('routeFilter');
 
 // Initialize admin panel
 function initAdminPanel() {
-  checkAdminStatus();
-  setupEventListeners();
-  loadTrainSchedules();
-}
-
-// Check if user is admin
-function checkAdminStatus() {
   auth.onAuthStateChanged(user => {
     if (!user) {
       window.location.href = 'login.html';
     } else {
-      user.getIdTokenResult().then(idTokenResult => {
-        if (!idTokenResult.claims.admin) {
-          alert('You need admin privileges to access this panel');
-          window.location.href = 'login.html';
-        }
-      });
+      setupEventListeners();
+      loadTrainSchedules();
     }
   });
 }
