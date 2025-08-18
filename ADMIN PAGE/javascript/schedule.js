@@ -1,6 +1,4 @@
-console.log("Admin schedule script loaded");
-
-// Initialize Firebase
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
@@ -12,207 +10,290 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const db = firebase.firestore();
 const auth = firebase.auth();
 
-// Reference to the train schedules in Firebase
-const trainsRef = database.ref('trainSchedules');
-
 // DOM elements
+const manageTrainsBtn = document.getElementById('manageTrainsBtn');
+const actionModal = document.getElementById('actionModal');
+const closeModalBtn = document.querySelector('.close-modal');
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+const addTrainForm = document.getElementById('addTrainForm');
+const delayTrainForm = document.getElementById('delayTrainForm');
+const cancelTrainForm = document.getElementById('cancelTrainForm');
+const trainToDelaySelect = document.getElementById('trainToDelay');
+const trainToCancelSelect = document.getElementById('trainToCancel');
 const scheduleTableBody = document.getElementById('scheduleTableBody');
-const trainForm = document.getElementById('trainForm');
-const addTrainBtn = document.getElementById('addTrainBtn');
-const cancelFormBtn = document.getElementById('cancelFormBtn');
-const trainFormContainer = document.getElementById('trainFormContainer');
 const routeFilter = document.getElementById('routeFilter');
 
-// Current editing state
-let isEditing = false;
-let currentEditId = null;
-
-// Initialize the admin interface
-function initAdminSchedule() {
-  console.log("Initializing admin schedule");
-  
-  // Debug: Verify button is found
-  console.log("Add train button:", addTrainBtn);
-  
-  // Load all train schedules
+// Initialize admin panel
+function initAdminPanel() {
+  checkAdminStatus();
+  setupEventListeners();
   loadTrainSchedules();
-  
-  // Set up event listeners
-  addTrainBtn.addEventListener('click', showAddTrainForm);
-  console.log("Event listener added to button");
-  
-  cancelFormBtn.addEventListener('click', hideTrainForm);
-  trainForm.addEventListener('submit', handleFormSubmit);
-  routeFilter.addEventListener('change', filterSchedules);
-  
-  // Check auth state
+}
+
+// Check if user is admin
+function checkAdminStatus() {
   auth.onAuthStateChanged(user => {
     if (!user) {
       window.location.href = 'login.html';
+    } else {
+      user.getIdTokenResult().then(idTokenResult => {
+        if (!idTokenResult.claims.admin) {
+          alert('You need admin privileges to access this panel');
+          window.location.href = 'login.html';
+        }
+      });
     }
   });
+}
+
+// Set up event listeners
+function setupEventListeners() {
+  // Modal controls
+  manageTrainsBtn.addEventListener('click', openModal);
+  closeModalBtn.addEventListener('click', closeModal);
   
-  // Logout button
+  // Tab switching
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  
+  // Form submissions
+  addTrainForm.addEventListener('submit', handleAddTrain);
+  delayTrainForm.addEventListener('submit', handleDelayTrain);
+  cancelTrainForm.addEventListener('submit', handleCancelTrain);
+  
+  // Route filter
+  routeFilter.addEventListener('change', loadTrainSchedules);
+  
+  // Logout
   document.getElementById('logoutBtn').addEventListener('click', () => {
-    auth.signOut().then(() => {
-      window.location.href = 'login.html';
-    });
+    auth.signOut().then(() => window.location.href = 'login.html');
   });
 }
 
-// Load train schedules from Firebase
+// Modal functions
+function openModal() {
+  actionModal.style.display = 'flex';
+  loadActiveTrains();
+}
+
+function closeModal() {
+  actionModal.style.display = 'none';
+}
+
+// Tab switching
+function switchTab(tabName) {
+  tabButtons.forEach(btn => btn.classList.remove('active'));
+  tabContents.forEach(content => content.classList.remove('active'));
+  
+  document.querySelector(`.tab-btn[data-tab="${tabName}"]`).classList.add('active');
+  document.getElementById(`${tabName}Tab`).classList.add('active');
+}
+
+// Load active trains for delay/cancel dropdowns
+function loadActiveTrains() {
+  db.collection('trainSchedules')
+    .where('status', '==', 'On Time')
+    .get()
+    .then(querySnapshot => {
+      trainToDelaySelect.innerHTML = '<option value="">-- Select Train --</option>';
+      trainToCancelSelect.innerHTML = '<option value="">-- Select Train --</option>';
+      
+      querySnapshot.forEach(doc => {
+        const train = doc.data();
+        const option = `<option value="${doc.id}">
+          ${train.trainNumber} (${train.route}) - Dep: ${train.departure}
+        </option>`;
+        
+        trainToDelaySelect.innerHTML += option;
+        trainToCancelSelect.innerHTML += option;
+      });
+    });
+}
+
+// Load all train schedules for table
 function loadTrainSchedules() {
-  trainsRef.on('value', (snapshot) => {
-    const trains = snapshot.val() || {};
-    renderTrainSchedules(trains);
+  let query = db.collection('trainSchedules');
+  
+  if (routeFilter.value !== 'all') {
+    query = query.where('route', '==', routeFilter.value);
+  }
+  
+  query.orderBy('departure').onSnapshot(snapshot => {
+    scheduleTableBody.innerHTML = '';
+    
+    snapshot.forEach(doc => {
+      const train = doc.data();
+      const row = document.createElement('tr');
+      
+      row.innerHTML = `
+        <td>${train.trainNumber}</td>
+        <td>${formatRouteName(train.route)}</td>
+        <td>${train.departure}</td>
+        <td>${train.arrival}</td>
+        <td class="status-${train.status.replace(' ', '-')}">${train.status}</td>
+        <td class="actions">
+          <button class="btn-edit" data-id="${doc.id}"><i class="fas fa-edit"></i></button>
+          <button class="btn-delete" data-id="${doc.id}"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      
+      scheduleTableBody.appendChild(row);
+    });
+    
+    // Add event listeners to action buttons
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const trainId = e.currentTarget.dataset.id;
+        editTrain(trainId);
+      });
+    });
+    
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const trainId = e.currentTarget.dataset.id;
+        deleteTrain(trainId);
+      });
+    });
   });
 }
 
-// Render train schedules to the table
-function renderTrainSchedules(trains) {
-  scheduleTableBody.innerHTML = '';
-  
-  Object.entries(trains).forEach(([id, train]) => {
-    const routeInfo = getRouteInfo(train.route);
-    
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${train.trainNumber}</td>
-      <td>${routeInfo.name}</td>
-      <td>${train.departure}</td>
-      <td>${train.arrival}</td>
-      <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
-      <td class="actions">
-        <button class="btn-edit" data-id="${id}"><i class="fas fa-edit"></i></button>
-        <button class="btn-delete" data-id="${id}"><i class="fas fa-trash"></i></button>
-      </td>
-    `;
-    
-    scheduleTableBody.appendChild(row);
-  });
-  
-  // Add event listeners to edit/delete buttons
-  document.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const trainId = e.currentTarget.dataset.id;
-      editTrainSchedule(trainId);
-    });
-  });
-  
-  document.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const trainId = e.currentTarget.dataset.id;
-      deleteTrainSchedule(trainId);
-    });
-  });
-}
-
-// Get route info from the predefined routes
-function getRouteInfo(routeKey) {
-  const routes = {
-    "saulsville-pretoria": {
-      name: "Saulsville → Pretoria",
-      price: "R5.50"
-    },
-    "pretoria-saulsville": {
-      name: "Pretoria → Saulsville",
-      price: "R5.50"
-    },
-    "dewildt-pretoria": {
-      name: "De Wildt → Pretoria",
-      price: "R6.80"
-    },
-    "pretoria-dewildt": {
-      name: "Pretoria → De Wildt",
-      price: "R7.20"
-    }
+// Format route name for display
+function formatRouteName(routeKey) {
+  const routeNames = {
+    'saulsville-pretoria': 'Saulsville → Pretoria',
+    'pretoria-saulsville': 'Pretoria → Saulsville',
+    'dewildt-pretoria': 'De Wildt → Pretoria',
+    'pretoria-dewildt': 'Pretoria → De Wildt'
   };
-  
-  return routes[routeKey] || { name: routeKey, price: "N/A" };
+  return routeNames[routeKey] || routeKey;
 }
 
-// Show add train form
-function showAddTrainForm() {
-  console.log("Showing add train form");
-  isEditing = false;
-  currentEditId = null;
-  trainForm.reset();
-  document.getElementById('editTrainId').value = '';
-  trainFormContainer.style.display = 'block';
-  
-  // Scroll to form for better UX
-  trainFormContainer.scrollIntoView({ behavior: 'smooth' });
-}
-
-// Hide train form
-function hideTrainForm() {
-  trainFormContainer.style.display = 'none';
-}
-
-// Handle form submission
-function handleFormSubmit(e) {
+// Add new train
+function handleAddTrain(e) {
   e.preventDefault();
   
   const trainData = {
-    trainNumber: document.getElementById('trainNumber').value,
-    route: document.getElementById('trainRoute').value,
-    departure: document.getElementById('departureTime').value,
-    arrival: document.getElementById('arrivalTime').value,
-    status: document.getElementById('trainStatus').value
+    trainNumber: addTrainForm.trainNumber.value.trim(),
+    route: addTrainForm.trainRoute.value,
+    departure: addTrainForm.departureTime.value,
+    arrival: addTrainForm.arrivalTime.value,
+    status: 'On Time',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   
-  if (isEditing && currentEditId) {
-    // Update existing train
-    trainsRef.child(currentEditId).update(trainData)
-      .then(() => {
-        alert('Train schedule updated successfully!');
-        hideTrainForm();
-      })
-      .catch(error => {
-        alert('Error updating train: ' + error.message);
-      });
-  } else {
-    // Add new train
-    trainsRef.push(trainData)
-      .then(() => {
-        alert('Train schedule added successfully!');
-        hideTrainForm();
-      })
-      .catch(error => {
-        alert('Error adding train: ' + error.message);
-      });
-  }
+  db.collection('trainSchedules').add(trainData)
+    .then(() => {
+      alert('Train added successfully!');
+      addTrainForm.reset();
+      closeModal();
+    })
+    .catch(error => {
+      alert('Error adding train: ' + error.message);
+    });
 }
 
-// Edit train schedule
-function editTrainSchedule(trainId) {
-  trainsRef.child(trainId).once('value', (snapshot) => {
-    const train = snapshot.val();
-    if (train) {
-      isEditing = true;
-      currentEditId = trainId;
+// Delay a train
+function handleDelayTrain(e) {
+  e.preventDefault();
+  
+  const trainId = delayTrainForm.trainToDelay.value;
+  const minutes = parseInt(delayTrainForm.delayMinutes.value);
+  const reason = delayTrainForm.delayReason.value.trim();
+  
+  if (!trainId) {
+    alert('Please select a train to delay');
+    return;
+  }
+  
+  const trainRef = db.collection('trainSchedules').doc(trainId);
+  
+  db.runTransaction(transaction => {
+    return transaction.get(trainRef).then(doc => {
+      if (!doc.exists) {
+        throw new Error('Train not found');
+      }
       
-      document.getElementById('editTrainId').value = trainId;
-      document.getElementById('trainNumber').value = train.trainNumber;
-      document.getElementById('trainRoute').value = train.route;
-      document.getElementById('departureTime').value = train.departure;
-      document.getElementById('arrivalTime').value = train.arrival;
-      document.getElementById('trainStatus').value = train.status;
+      const train = doc.data();
+      const newDeparture = addMinutes(train.departure, minutes);
       
-      trainFormContainer.style.display = 'block';
-    }
+      transaction.update(trainRef, {
+        departure: newDeparture,
+        status: `Delayed by ${minutes} min`,
+        delayReason: reason || null,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+  })
+  .then(() => {
+    alert('Train delayed successfully');
+    delayTrainForm.reset();
+    closeModal();
+  })
+  .catch(error => {
+    alert('Error delaying train: ' + error.message);
   });
 }
 
-// Delete train schedule
-function deleteTrainSchedule(trainId) {
+// Cancel a train
+function handleCancelTrain(e) {
+  e.preventDefault();
+  
+  const trainId = cancelTrainForm.trainToCancel.value;
+  const reason = cancelTrainForm.cancelReason.value.trim();
+  
+  if (!trainId) {
+    alert('Please select a train to cancel');
+    return;
+  }
+  
+  if (!confirm('Are you sure you want to cancel this train?')) {
+    return;
+  }
+  
+  db.collection('trainSchedules').doc(trainId).update({
+    status: 'Cancelled',
+    cancellationReason: reason || null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    alert('Train cancelled successfully');
+    cancelTrainForm.reset();
+    closeModal();
+  })
+  .catch(error => {
+    alert('Error cancelling train: ' + error.message);
+  });
+}
+
+// Edit train (opens modal with train data)
+function editTrain(trainId) {
+  db.collection('trainSchedules').doc(trainId).get()
+    .then(doc => {
+      if (doc.exists) {
+        const train = doc.data();
+        addTrainForm.trainNumber.value = train.trainNumber;
+        addTrainForm.trainRoute.value = train.route;
+        addTrainForm.departureTime.value = train.departure;
+        addTrainForm.arrivalTime.value = train.arrival;
+        document.getElementById('editTrainId').value = doc.id;
+        switchTab('add');
+        openModal();
+      }
+    });
+}
+
+// Delete train
+function deleteTrain(trainId) {
   if (confirm('Are you sure you want to delete this train schedule?')) {
-    trainsRef.child(trainId).remove()
+    db.collection('trainSchedules').doc(trainId).delete()
       .then(() => {
-        alert('Train schedule deleted successfully!');
+        alert('Train schedule deleted successfully');
       })
       .catch(error => {
         alert('Error deleting train: ' + error.message);
@@ -220,34 +301,13 @@ function deleteTrainSchedule(trainId) {
   }
 }
 
-// Filter schedules by route
-function filterSchedules() {
-  const selectedRoute = routeFilter.value;
-  
-  if (selectedRoute === 'all') {
-    trainsRef.on('value', (snapshot) => {
-      const trains = snapshot.val() || {};
-      renderTrainSchedules(trains);
-    });
-  } else {
-    trainsRef.orderByChild('route').equalTo(selectedRoute).on('value', (snapshot) => {
-      const trains = snapshot.val() || {};
-      renderTrainSchedules(trains);
-    });
-  }
+// Helper function to add minutes to time string
+function addMinutes(timeString, minutes) {
+  const [hours, mins] = timeString.split(':').map(Number);
+  const date = new Date();
+  date.setHours(hours, mins + minutes);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-//
-// In admin-schedule.js
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
-// Test read
-database.ref('trainSchedules').once('value').then((snapshot) => {
-  console.log("Database test - loaded schedules:", snapshot.val());
-});
-// Initialize the admin interface when DOM is loaded
-document.addEventListener('DOMContentLoaded', initAdminSchedule);
-
-
-
+// Initialize the admin panel when DOM is loaded
+document.addEventListener('DOMContentLoaded', initAdminPanel);
