@@ -224,6 +224,16 @@ function filterSchedules() {
   }
 }
 
+//
+// In admin-schedule.js
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// Test read
+database.ref('trainSchedules').once('value').then((snapshot) => {
+  console.log("Database test - loaded schedules:", snapshot.val());
+});
 // Initialize the admin interface when DOM is loaded
 document.addEventListener('DOMContentLoaded', initAdminSchedule);
+
 
