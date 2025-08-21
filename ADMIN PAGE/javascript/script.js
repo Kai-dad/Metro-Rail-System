@@ -52,10 +52,11 @@ function drawChart(data) {
     ctx.fillText(item.value, x, y - 5);
   });
 
-  // Y-axis (optional)
+  // Y-axis
   ctx.beginPath();
   ctx.moveTo(padding, padding);
   ctx.lineTo(padding, canvas.height - padding);
   ctx.strokeStyle = "#aaa";
   ctx.stroke();
 }
+
