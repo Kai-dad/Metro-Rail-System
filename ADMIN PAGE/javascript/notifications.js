@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  // Sample notification data
+  
   const notifications = [
     {
       id: 1,
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   ];
 
-  // DOM elements
+  
   const notificationsList = document.querySelector('.notifications-list');
   const filterSelect = document.getElementById('notification-filter');
   const modal = document.getElementById('notification-modal');
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const lineSelect = document.getElementById('line-select');
   const selectedLines = document.getElementById('selected-lines');
 
-  // Render notifications
+  
   function renderNotifications(filter = 'all') {
     notificationsList.innerHTML = '';
     
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
       notificationsList.appendChild(notificationCard);
     });
     
-    // Add event listeners to mark-read buttons
+    // mark-read buttons
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         const id = parseInt(this.getAttribute('data-id'));
@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Modal handling
+  
   newNotificationBtn.addEventListener('click', () => {
     modal.style.display = 'block';
     document.body.classList.add('modal-open');
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Add line to selection
+  
   addLineBtn.addEventListener('click', () => {
     const line = lineSelect.options[lineSelect.selectedIndex].text;
     const value = lineSelect.value;
@@ -163,7 +163,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Form submission
+  // Submission Form
+  
   notificationForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
@@ -190,21 +191,22 @@ document.addEventListener('DOMContentLoaded', function() {
     notifications.unshift(newNotification);
     renderNotifications(filterSelect.value);
     
-    // Reset form
+    
     notificationForm.reset();
     selectedLines.innerHTML = '';
     modal.style.display = 'none';
     document.body.classList.remove('modal-open');
     
-    // Show success message
+    
     alert('Notification sent successfully!');
   });
 
-  // Filter change
+  
   filterSelect.addEventListener('change', () => {
     renderNotifications(filterSelect.value);
   });
 
-  // Initial render
+  
   renderNotifications();
+
 });
