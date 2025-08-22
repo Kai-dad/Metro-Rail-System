@@ -577,20 +577,20 @@ textarea {
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.4);
-  overflow: auto; /* Changed from default */
+  overflow: auto; 
 }
 
 .modal-content {
   background-color: #fefefe;
-  margin: 2% auto; /* Reduced from 5% */
+  margin: 2% auto; 
   padding: 25px;
   border-radius: 8px;
   width: 60%;
   max-width: 700px;
-  max-height: 90vh; /* Added */
-  overflow-y: auto; /* Added */
+  max-height: 90vh; 
+  overflow-y: auto; 
   box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  position: relative; /* Added */
+  position: relative; 
 }
 
 /* Prevent body scrolling when modal is open */
@@ -1113,9 +1113,9 @@ body.modal-open {
   color: #666;
 }
 :root {
-            --primary: #FFD700; /* Yellow */
-            --secondary: #000000; /* Black */
-            --background: #FFFFFF; /* White */
+            --primary: #FFD700; 
+            --secondary: #000000; 
+            --background: #FFFFFF; 
             --text: #333333;
             --highlight: #FFFACD;
         }
@@ -1388,7 +1388,7 @@ body.modal-open {
             }
         }
 	
-		/* Enhanced User Management Styles */
+		/*  User Management Styles */
 .user-controls {
   display: flex;
   justify-content: space-between;
@@ -1481,13 +1481,13 @@ body.modal-open {
   background: #d32f2f;
 }
 
-/* Action buttons container */
+/*  buttons containerr */
 .user-table td:last-child {
   display: flex;
   gap: 8px;
 }
 
-/* Responsive adjustments */
+/*mobile resposive */
 @media (max-width: 768px) {
   .user-controls {
     flex-direction: column;
@@ -1510,3 +1510,4 @@ body.modal-open {
     font-size: 12px;
   }
 }
+
