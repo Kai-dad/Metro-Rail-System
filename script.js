@@ -1,9 +1,13 @@
+// =============================================
+// GLOBAL VARIABLES AND DATA
+// =============================================
+
 let homeMap, scheduleMap;
 let originMarker, destMarker, routeLine;
 let currentRouteIndex = 0;
 let routeInterval;
 
-// Home page route data
+// Home page route data (kept as is)
 const homeRoutes = [
   { 
     origin: "Saulsville", 
@@ -39,14 +43,76 @@ const homeRoutes = [
   }
 ];
 
-// Home page train schedule
-const homeTrainSchedule = [
-  "06:00", "07:30", "09:00", "10:30", 
-  "12:00", "13:30", "15:00", "16:30", 
-  "18:00", "19:30", "21:00", "23:45"
-];
+// =====================
+// Firebase Integration
+// =====================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
+  authDomain: "metro-rail-2de9c.firebaseapp.com",
+  projectId: "metro-rail-2de9c",
+  storageBucket: "metro-rail-2de9c.firebasestorage.app",
+  messagingSenderId: "1036516254492",
+  appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
+};
 
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// =====================
+// Schedules (from Firebase)
+// =====================
+let trainSchedule = [];       // full train schedule (was originalTrainSchedule)
+let homeTrainSchedule = [];   // for homepage countdown
+
+async function loadSchedules() {
+  try {
+    const querySnapshot = await getDocs(collection(db, "schedules"));
+    trainSchedule = [];
+    homeTrainSchedule = [];
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      trainSchedule.push({
+        trainNumber: data.trainNumber,
+        route: data.route,
+        departure: data.departure,
+        arrival: data.arrival,
+        status: data.status
+      });
+      if (data.home === true) {
+        homeTrainSchedule.push(data.departure);
+      }
+    });
+
+    homeTrainSchedule.sort();
+    filterByRoute();
+    updateAll();
+  } catch (error) {
+    console.error("Error loading schedules:", error);
+  }
+}
+
+// Live updates
+onSnapshot(collection(db, "schedules"), (snapshot) => {
+  trainSchedule = [];
+  homeTrainSchedule = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    trainSchedule.push(data);
+    if (data.home === true) homeTrainSchedule.push(data.departure);
+  });
+
+  homeTrainSchedule.sort();
+  filterByRoute();
+  updateAll();
+});
+
+// =====================
+// Schedule page data (routes remain static)
+// =====================
 const routes = {
     "saulsville-pretoria": {
         name: "Saulsville → Pretoria",
@@ -114,57 +180,6 @@ const routes = {
     }
 };
 
-
-const originalTrainSchedule = [
-    // Pretoria → Saulsville (Weekday)
-    { trainNumber: "0003", route: "pretoria-saulsville", departure: "05:28", arrival: "06:40", status: "On Time" },
-    { trainNumber: "0005", route: "pretoria-saulsville", departure: "06:10", arrival: "06:54", status: "On Time" },
-    { trainNumber: "0007", route: "pretoria-saulsville", departure: "06:12", arrival: "07:07", status: "On Time" },  
-    { trainNumber: "0009", route: "pretoria-saulsville", departure: "06:25", arrival: "07:22", status: "On Time" },  
-    { trainNumber: "0011", route: "pretoria-saulsville", departure: "06:30", arrival: "07:37", status: "On Time" },  
-    { trainNumber: "0013", route: "pretoria-saulsville", departure: "06:32", arrival: "07:59", status: "On Time" },  
-    { trainNumber: "0015", route: "pretoria-saulsville", departure: "07:07", arrival: "08:04", status: "On Time" },  
-    { trainNumber: "0017", route: "pretoria-saulsville", departure: "07:22", arrival: "08:11", status: "On Time" },  
-    { trainNumber: "0019", route: "pretoria-saulsville", departure: "07:35", arrival: "08:32", status: "On Time" },  
-    { trainNumber: "0021", route: "pretoria-saulsville", departure: "07:49", arrival: "08:47", status: "On Time" },  
-    { trainNumber: "0022", route: "pretoria-saulsville", departure: "20:10", arrival: "20:55", status: "On Time" },
-    { trainNumber: "0025", route: "pretoria-saulsville", departure: "21:17", arrival: "21:54", status: "On Time" },
-    { trainNumber: "0027", route: "pretoria-saulsville", departure: "22:01", arrival: "22:27", status: "On Time" },
-    { trainNumber: "0029", route: "pretoria-saulsville", departure: "22:17", arrival: "22:42", status: "On Time" },
-    
-    // Saulsville → Pretoria (Weekday)
-    { trainNumber: "0004", route: "saulsville-pretoria", departure: "08:32", arrival: "08:57", status: "On Time" },
-    { trainNumber: "0043", route: "saulsville-pretoria", departure: "09:12", arrival: "09:37", status: "On Time" },  
-    { trainNumber: "0044", route: "saulsville-pretoria", departure: "09:48", arrival: "10:13", status: "On Time" },
-    { trainNumber: "0065", route: "saulsville-pretoria", departure: "10:22", arrival: "10:47", status: "On Time" },
-    { trainNumber: "0047", route: "saulsville-pretoria", departure: "10:58", arrival: "11:23", status: "On Time" },
-    { trainNumber: "0048", route: "saulsville-pretoria", departure: "11:32", arrival: "11:57", status: "On Time" },  
-    { trainNumber: "0051", route: "saulsville-pretoria", departure: "12:03", arrival: "12:28", status: "On Time" },
-    { trainNumber: "0053", route: "saulsville-pretoria", departure: "12:42", arrival: "13:07", status: "On Time" },  
-    { trainNumber: "0055", route: "saulsville-pretoria", departure: "13:18", arrival: "13:43", status: "On Time" },
-    { trainNumber: "0059", route: "saulsville-pretoria", departure: "15:52", arrival: "16:17", status: "On Time" },  
-    { trainNumber: "0039", route: "saulsville-pretoria", departure: "20:28", arrival: "20:53", status: "On Time" },
-    { trainNumber: "0061", route: "saulsville-pretoria", departure: "21:02", arrival: "21:27", status: "On Time" },
-    { trainNumber: "0063", route: "saulsville-pretoria", departure: "22:17", arrival: "22:42", status: "On Time" },
-    { trainNumber: "0065", route: "saulsville-pretoria", departure: "22:32", arrival: "22:57", status: "On Time" },
-    
-    // De Wildt → Pretoria
-    { trainNumber: "1001", route: "dewildt-pretoria", departure: "06:15", arrival: "06:50", status: "On Time" },
-    { trainNumber: "1003", route: "dewildt-pretoria", departure: "09:15", arrival: "09:50", status: "On Time" },
-    { trainNumber: "1005", route: "dewildt-pretoria", departure: "12:15", arrival: "12:50", status: "On Time" },
-    { trainNumber: "1007", route: "dewildt-pretoria", departure: "15:15", arrival: "15:50", status: "On Time" },
-    { trainNumber: "1009", route: "dewildt-pretoria", departure: "16:15", arrival: "16:50", status: "On Time" },
-    
-    // Pretoria → De Wildt
-    { trainNumber: "1002", route: "pretoria-dewildt", departure: "07:45", arrival: "08:20", status: "On Time" },
-    { trainNumber: "1004", route: "pretoria-dewildt", departure: "10:45", arrival: "11:20", status: "On Time" },
-    { trainNumber: "1006", route: "pretoria-dewildt", departure: "13:45", arrival: "14:20", status: "On Time" },
-    { trainNumber: "1008", route: "pretoria-dewildt", departure: "16:45", arrival: "17:20", status: "On Time" },
-    { trainNumber: "1100", route: "pretoria-dewildt", departure: "19:45", arrival: "20:20", status: "On Time" }
-];
-
-let trainSchedule = [...originalTrainSchedule];
-
 // FAQ data
 const faqData = [
   {
@@ -221,13 +236,13 @@ const faqData = [
 
 
 function init() {
-  
+  // Set up event listeners
   window.addEventListener('hashchange', () => {
     const hash = location.hash.replace('#', '') || 'home';
     showPage(hash);
   });
 
-  
+  // Initial page load
   const hash = location.hash.replace('#', '') || 'home';
   showPage(hash);
 }
@@ -266,7 +281,7 @@ function initRoutePage() {
   clearInterval(window.clockInterval);
 
   window.clockInterval = setInterval(updateAll, 1000);
-  window.routeInterval = setInterval(updateRoute, 15000); 
+  window.routeInterval = setInterval(updateRoute, 15000); // Change route every 15 seconds
 }
 
 function initHomeMap() {
@@ -301,12 +316,12 @@ function updateMapRoute() {
 
   const route = homeRoutes[currentRouteIndex];
 
-  
+  // Clear previous elements
   if (originMarker) homeMap.removeLayer(originMarker);
   if (destMarker) homeMap.removeLayer(destMarker);
   if (routeLine) homeMap.removeLayer(routeLine);
 
-  
+  // Add new markers
   originMarker = L.marker(route.originCoords)
     .addTo(homeMap)
     .bindPopup(`Origin: ${route.origin}`);
@@ -315,14 +330,14 @@ function updateMapRoute() {
     .addTo(homeMap)
     .bindPopup(`Destination: ${route.destination}`);
 
-  
+  // Add new route line
   routeLine = L.polyline([route.originCoords, route.destCoords], {
     color: route.color,
     weight: 4,
     opacity: 0.7
   }).addTo(homeMap);
 
-  
+  // Fit bounds to show both points
   homeMap.fitBounds([route.originCoords, route.destCoords], {
     padding: [50, 50]
   });
@@ -332,7 +347,7 @@ function updateRoute() {
   currentRouteIndex = (currentRouteIndex + 1) % homeRoutes.length;
   const route = homeRoutes[currentRouteIndex];
   
-  
+  // Update DOM elements
   const originEl = document.getElementById('origin');
   const destEl = document.getElementById('destination');
   const costEl = document.getElementById('tripCost');
@@ -423,7 +438,7 @@ function initSchedulePage() {
   filterByRoute();
   setupScheduleEvents();
   
-  
+  // Initial update
   setTimeout(simulateRealTimeUpdates, 1000);
   
   setInterval(simulateRealTimeUpdates, 25000);
@@ -536,7 +551,7 @@ function generateDetailedSchedule(route, departureTime) {
   for (let i = 0; i < route.substations.length; i++) {
     const station = route.substations[i];
     
-    
+    // Arrival time
     schedule.push({
       station: station.name,
       time: currentTime,
@@ -553,7 +568,7 @@ function generateDetailedSchedule(route, departureTime) {
       });
     }
     
-    
+    // Travel time to next station
     if (i < route.substations.length - 1 && route.substations[i+1].travelTime) {
       currentTime = addMinutes(currentTime, route.substations[i+1].travelTime);
     }
@@ -572,7 +587,7 @@ function addMinutes(timeString, minutes) {
 function updateMapForRoute(routeKey) {
   if (!scheduleMap) return;
   
-
+  // Clear all existing route lines
   scheduleMap.eachLayer(layer => {
     if (layer instanceof L.Polyline) {
       scheduleMap.removeLayer(layer);
@@ -584,20 +599,20 @@ function updateMapForRoute(routeKey) {
   } else if (routes[routeKey]) {
     const route = routes[routeKey];
     
-    
+    // Add the selected route line
     L.polyline([route.originCoords, route.destCoords], {
       color: route.color,
       weight: 4,
       opacity: 0.9
     }).addTo(scheduleMap);
     
-    
+    // Add markers for origin and destination
     L.marker(route.originCoords).addTo(scheduleMap)
       .bindPopup(`Origin: ${route.origin}`);
     L.marker(route.destCoords).addTo(scheduleMap)
       .bindPopup(`Destination: ${route.destination}`);
     
-    
+    // Fit map to show the selected route
     scheduleMap.fitBounds([route.originCoords, route.destCoords]);
   }
 }
@@ -610,12 +625,12 @@ function setupScheduleEvents() {
 }
 
 function simulateRealTimeUpdates() {
-  
+  // First remove any trains that have departed (and aren't delayed)
   trainSchedule = trainSchedule.filter(train => 
     !isTimePassed(train.departure) || train.status.includes("Delayed")
   );
 
-  
+  // Get only trains that haven't departed yet for status changes
   const upcomingTrains = trainSchedule.filter(train => !isTimePassed(train.departure));
   
   if (upcomingTrains.length > 0) {
@@ -623,16 +638,16 @@ function simulateRealTimeUpdates() {
     const randomTrain = upcomingTrains[randomIndex];
     const randomAction = Math.random();
     
-    if (randomAction < 0.6) { 
+    if (randomAction < 0.6) { // 60% chance for on time
       document.getElementById('realTimeUpdate').textContent = `Train ${randomTrain.trainNumber} is running on schedule`;
       document.getElementById('passengerAlert').textContent = "No delays expected";
       document.getElementById('safetyAlert').textContent = "All systems operational";
     } 
-    else if (randomAction < 0.9) { 
+    else if (randomAction < 0.9) { // 30% chance for delay
       const delayMinutes = Math.floor(Math.random() * 30) + 5;
       randomTrain.status = `Delayed by ${delayMinutes} min`;
       
-      
+      // Calculate new departure time
       const [hours, mins] = randomTrain.departure.split(':').map(Number);
       const departureDate = new Date();
       departureDate.setHours(hours, mins + delayMinutes, 0, 0);
@@ -644,9 +659,9 @@ function simulateRealTimeUpdates() {
       document.getElementById('passengerAlert').textContent = `Expect delays on ${routes[randomTrain.route].name} route`;
       document.getElementById('safetyAlert').textContent = "Delay due to operational requirements";
     } 
-    else { 
+    else { // 10% chance for cancellation
       randomTrain.status = "Cancelled";
-      
+      // Remove from schedule
       const indexToRemove = trainSchedule.findIndex(t => t.trainNumber === randomTrain.trainNumber);
       if (indexToRemove !== -1) {
         trainSchedule.splice(indexToRemove, 1);
@@ -657,12 +672,13 @@ function simulateRealTimeUpdates() {
       document.getElementById('safetyAlert').textContent = "Service suspended due to safety inspection";
     }
   } else {
-    
+    // No upcoming trains to modify
     document.getElementById('realTimeUpdate').textContent = "No schedule changes for upcoming trains";
     document.getElementById('passengerAlert').textContent = "All trains running as scheduled";
     document.getElementById('safetyAlert').textContent = "All systems operational";
   }
   
+  // Update the displayed schedule
   filterByRoute();
 }
 
@@ -783,13 +799,18 @@ function showSlides() {
     slides[i].style.display = "none";
   }
 
+  // Move to the next slide
   slideIndex++;
   if (slideIndex > slides.length) { slideIndex = 1 }
+
+  // Show current slide
   slides[slideIndex - 1].style.display = "block";
 
+  // Change image every 5 seconds
   setTimeout(showSlides, 5000);
 }
 
-
-
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init();
+  loadSchedules();  // <-- fetch schedules on startup
+});
