@@ -149,18 +149,18 @@ const originalTrainSchedule = [
     { trainNumber: "0065", route: "saulsville-pretoria", departure: "22:32", arrival: "22:57", status: "On Time" },
     
     // De Wildt → Pretoria
-    { trainNumber: "DW101", route: "dewildt-pretoria", departure: "06:15", arrival: "06:50", status: "On Time" },
-    { trainNumber: "DW103", route: "dewildt-pretoria", departure: "09:15", arrival: "09:50", status: "On Time" },
-    { trainNumber: "DW105", route: "dewildt-pretoria", departure: "12:15", arrival: "12:50", status: "On Time" },
-    { trainNumber: "DW107", route: "dewildt-pretoria", departure: "15:15", arrival: "15:50", status: "On Time" },
-    { trainNumber: "DW109", route: "dewildt-pretoria", departure: "16:15", arrival: "16:50", status: "On Time" },
+    { trainNumber: "1001", route: "dewildt-pretoria", departure: "06:15", arrival: "06:50", status: "On Time" },
+    { trainNumber: "1003", route: "dewildt-pretoria", departure: "09:15", arrival: "09:50", status: "On Time" },
+    { trainNumber: "1005", route: "dewildt-pretoria", departure: "12:15", arrival: "12:50", status: "On Time" },
+    { trainNumber: "1007", route: "dewildt-pretoria", departure: "15:15", arrival: "15:50", status: "On Time" },
+    { trainNumber: "1009", route: "dewildt-pretoria", departure: "16:15", arrival: "16:50", status: "On Time" },
     
     // Pretoria → De Wildt
-    { trainNumber: "PD102", route: "pretoria-dewildt", departure: "07:45", arrival: "08:20", status: "On Time" },
-    { trainNumber: "PD104", route: "pretoria-dewildt", departure: "10:45", arrival: "11:20", status: "On Time" },
-    { trainNumber: "PD106", route: "pretoria-dewildt", departure: "13:45", arrival: "14:20", status: "On Time" },
-    { trainNumber: "PD108", route: "pretoria-dewildt", departure: "16:45", arrival: "17:20", status: "On Time" },
-    { trainNumber: "PD110", route: "pretoria-dewildt", departure: "19:45", arrival: "20:20", status: "On Time" }
+    { trainNumber: "1002", route: "pretoria-dewildt", departure: "07:45", arrival: "08:20", status: "On Time" },
+    { trainNumber: "1004", route: "pretoria-dewildt", departure: "10:45", arrival: "11:20", status: "On Time" },
+    { trainNumber: "1006", route: "pretoria-dewildt", departure: "13:45", arrival: "14:20", status: "On Time" },
+    { trainNumber: "1008", route: "pretoria-dewildt", departure: "16:45", arrival: "17:20", status: "On Time" },
+    { trainNumber: "1100", route: "pretoria-dewildt", departure: "19:45", arrival: "20:20", status: "On Time" }
 ];
 
 let trainSchedule = [...originalTrainSchedule];
