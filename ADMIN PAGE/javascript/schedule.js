@@ -1,4 +1,4 @@
-// Firebase configuration
+
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
@@ -12,7 +12,7 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-// DOM elements
+
 const manageTrainsBtn = document.getElementById('manageTrainsBtn');
 const actionModal = document.getElementById('actionModal');
 const closeModalBtn = document.querySelector('.close-modal');
@@ -40,7 +40,7 @@ function initAdminPanel() {
 
 // Set up event listeners
 function setupEventListeners() {
-  // Modal controls
+  
   manageTrainsBtn.addEventListener('click', openModal);
   closeModalBtn.addEventListener('click', closeModal);
   
@@ -49,7 +49,7 @@ function setupEventListeners() {
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
   
-  // Form submissions
+  // Form submission
   addTrainForm.addEventListener('submit', handleAddTrain);
   delayTrainForm.addEventListener('submit', handleDelayTrain);
   cancelTrainForm.addEventListener('submit', handleCancelTrain);
@@ -63,7 +63,7 @@ function setupEventListeners() {
   });
 }
 
-// Modal functions
+
 function openModal() {
   actionModal.style.display = 'flex';
   loadActiveTrains();
@@ -82,7 +82,7 @@ function switchTab(tabName) {
   document.getElementById(`${tabName}Tab`).classList.add('active');
 }
 
-// Load active trains for delay/cancel dropdowns
+// Load active trains for delay or cancel 
 function loadActiveTrains() {
   db.collection('trainSchedules')
     .where('status', '==', 'On Time')
@@ -133,7 +133,7 @@ function loadTrainSchedules() {
       scheduleTableBody.appendChild(row);
     });
     
-    // Add event listeners to action buttons
+    // action buttons
     document.querySelectorAll('.btn-edit').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const trainId = e.currentTarget.dataset.id;
@@ -259,7 +259,7 @@ function handleCancelTrain(e) {
   });
 }
 
-// Edit train (opens modal with train data)
+// Edit train 
 function editTrain(trainId) {
   db.collection('trainSchedules').doc(trainId).get()
     .then(doc => {
@@ -289,7 +289,7 @@ function deleteTrain(trainId) {
   }
 }
 
-// Helper function to add minutes to time string
+
 function addMinutes(timeString, minutes) {
   const [hours, mins] = timeString.split(':').map(Number);
   const date = new Date();
@@ -297,5 +297,6 @@ function addMinutes(timeString, minutes) {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-// Initialize the admin panel when DOM is loaded
+
 document.addEventListener('DOMContentLoaded', initAdminPanel);
+
