@@ -4,10 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Management</title>
-  <link rel="stylesheet" href="cascading stylesheet/styles.css">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <link rel="stylesheet" href="cascading stylesheet/User management.css">
 </head>
 <body>
   <div class="container">
@@ -35,7 +32,7 @@
       
       <section class="user-controls">
         <input type="text" id="search-input" placeholder="Search by username or email..." />
-        <button id="add-user-btn">Add User</button>
+        <button id="refresh-btn">Refresh Users</button>
       </section>
 
       <div class="user-table-container">
@@ -46,7 +43,7 @@
               <th>Email</th>
               <th>Role</th>
               <th>Account Created</th>
-              <th>Actions</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody id="users-table-body">
@@ -59,66 +56,9 @@
     </main>
   </div>
 
-  <!-- Add User Modal (hidden by default) -->
-  <div id="add-user-modal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Add New User</h2>
-      <form id="add-user-form">
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input type="text" id="username" required>
-        </div>
-        <div class="form-group">
-          <label for="email">Email:</label>
-          <input type="email" id="email" required>
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" id="password" required>
-        </div>
-        <div class="form-group">
-          <label for="role">Role:</label>
-          <select id="role" required>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        <button type="submit">Add User</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Edit User Modal (hidden by default) -->
-  <div id="edit-user-modal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Edit User</h2>
-      <form id="edit-user-form">
-        <input type="hidden" id="edit-user-id">
-        <div class="form-group">
-          <label for="edit-username">Username:</label>
-          <input type="text" id="edit-username" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-email">Email:</label>
-          <input type="email" id="edit-email" required>
-        </div>
-        <div class="form-group">
-          <label for="edit-role">Role:</label>
-          <select id="edit-role" required>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        <button type="submit">Save Changes</button>
-      </form>
-    </div>
-  </div>
-
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="javascript/user-management.js"></script>
 </body>
 </html>
-
-
-
