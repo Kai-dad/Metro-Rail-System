@@ -1,3 +1,4 @@
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
@@ -6,6 +7,10 @@ const firebaseConfig = {
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 // DOM elements
 const usersTableBody = document.getElementById('users-table-body');
@@ -17,17 +22,40 @@ const addUserForm = document.getElementById('add-user-form');
 const editUserForm = document.getElementById('edit-user-form');
 const closeButtons = document.querySelectorAll('.close');
 const logoutBtn = document.getElementById('logout-btn');
+const connectionStatus = document.getElementById('connection-status');
 
 // Store users data
 let users = [];
+
+// Function to show connection status
+function showConnectionStatus(message, isError = false) {
+  connectionStatus.textContent = message;
+  connectionStatus.className = isError ? 'connection-status error' : 'connection-status connected';
+  
+  // Hide status after 5 seconds unless it's an error
+  if (!isError) {
+    setTimeout(() => {
+      connectionStatus.style.display = 'none';
+    }, 5000);
+  }
+}
 
 // Function to fetch users from Firebase
 async function fetchUsers() {
   try {
     usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading users...</td></tr>';
     
+    // Test Firebase connection first
+    await db.collection('test').doc('test').get();
+    
     const snapshot = await db.collection('users').get();
     users = [];
+    
+    if (snapshot.empty) {
+      usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found in the database.</td></tr>';
+      showConnectionStatus('Connected successfully, but no users found.', false);
+      return;
+    }
     
     snapshot.forEach(doc => {
       users.push({
@@ -37,9 +65,19 @@ async function fetchUsers() {
     });
     
     renderUsers(users);
+    showConnectionStatus('Connected successfully. Users loaded.', false);
   } catch (error) {
     console.error('Error fetching users:', error);
-    usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">Error loading users. Please try again.</td></tr>';
+    usersTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="error">
+          Error loading users. Please check your connection and try again.
+          <br>
+          <button class="retry-btn" onclick="fetchUsers()">Retry</button>
+        </td>
+      </tr>
+    `;
+    showConnectionStatus('Connection error: ' + error.message, true);
   }
 }
 
@@ -55,11 +93,22 @@ function renderUsers(usersToRender) {
   usersToRender.forEach(user => {
     const row = document.createElement('tr');
     
+    // Format the date if available
+    let createdAt = 'N/A';
+    if (user.createdAt) {
+      try {
+        const date = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
+        createdAt = date.toLocaleDateString();
+      } catch (e) {
+        console.error('Error formatting date:', e);
+      }
+    }
+    
     row.innerHTML = `
       <td>${user.username || 'N/A'}</td>
       <td>${user.email || 'N/A'}</td>
       <td>${user.role || 'user'}</td>
-      <td>${user.createdAt ? new Date(user.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
+      <td>${createdAt}</td>
       <td>
         <button class="edit" data-id="${user.id}">Edit</button>
         <button class="delete" data-id="${user.id}">Delete</button>
@@ -235,3 +284,6 @@ window.addEventListener('click', (e) => {
     closeModals();
   }
 });
+
+// Export functions to global scope for retry button
+window.fetchUsers = fetchUsers;
