@@ -4,11 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Management</title>
-    <link rel="stylesheet" href="cascading stylesheet/styles.css">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-	  <div class="container">
+  <div class="container">
     <aside class="sidebar">
       <div class="brand">🚆 Metrorail Admin</div>
       <p class="status">🟢 System Operational</p>
@@ -17,121 +19,103 @@
         <a href="schedule.html">Schedule Management</a>
         <a href="notification.html">Notifications</a>
         <a href="station.html">Station Management</a>
-        <a href="User management.html" class="active">User Management</a>
+        <a href="user-management.html" class="active">User Management</a>
         <a href="system-settings.html">System Settings</a>
       </nav>
       <div class="logout">
         <p>👤 Administrator</p>
-        <button>Logout</button>
+        <button id="logout-btn">Logout</button>
       </div>
     </aside>
-	
-  <main class="User Management">
+    
+    <main class="user-management">
+      <h1>User Management</h1>
+      
+      <section class="user-controls">
+        <input type="text" id="search-input" placeholder="Search by username or email..." />
+        <button id="add-user-btn">Add User</button>
+      </section>
 
-  <section class="user-controls">
-    <input type="text" placeholder="Search by username or email..." />
-    <button>Add User</button>
-  </section>
-
-  <div class="user-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Userame</th>
-          <th>Email</th>
-          
-         <!-- <th>Role</th>-->
-          <th>Password</th>
-          <th>Actions</th>
-          
-        </tr>
-      </thead>
-      <tbody>
-        
-        <tr>
-          <td>MsAdmin</td>
-          <td>msadmin@metrorail.co.za</td>
-          <td>admin@2025</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-        
-        <tr>
-          <td>T Malope</td>
-          <td>thatomalope@gmail.com</td>
-          <td>tmalope45</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-
-        <tr>
-          <td>Sand</td>
-          <td>shandeshnaidoo@gmail.com</td>
-          <td>noodles.spicy</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-
-
-        <tr>
-          <td>TS Fatso</td>
-          <td>tshegofatsomasango@gmail.com</td>
-          <td>tts476@</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-
-
-        <tr>
-          <td>NomaPutin</td>
-          <td>petersnoms@gmail.com</td>
-          <td>nomaGucci.m</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-        <tr>
-          <td>Boitumelo.thug</td>
-          <td>boitumelotshabangu@gmail.com</td>
-          <td>tumzshabs</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-
-        <tr>
-          <td>Reggy</td>
-          <td>sirreginald@gmail.com</td>
-          <td>reggysauce</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-
-        <tr>
-          <td>TT Malope</td>
-          <td>thutomalope@gmail.com</td>
-          <td>thuthumalope1234</td>
-          <td>
-            <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
-          </td>
-        </tr>
-
-      </tbody>
-    </table>
+      <div class="user-table-container">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Account Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body">
+            <!-- Users will be populated here from Firebase -->
+            <tr>
+              <td colspan="5" class="loading">Loading users...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
   </div>
+
+  <!-- Add User Modal (hidden by default) -->
+  <div id="add-user-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Add New User</h2>
+      <form id="add-user-form">
+        <div class="form-group">
+          <label for="username">Username:</label>
+          <input type="text" id="username" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" required>
+        </div>
+        <div class="form-group">
+          <label for="role">Role:</label>
+          <select id="role" required>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit">Add User</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit User Modal (hidden by default) -->
+  <div id="edit-user-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit User</h2>
+      <form id="edit-user-form">
+        <input type="hidden" id="edit-user-id">
+        <div class="form-group">
+          <label for="edit-username">Username:</label>
+          <input type="text" id="edit-username" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-email">Email:</label>
+          <input type="email" id="edit-email" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-role">Role:</label>
+          <select id="edit-role" required>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="firebase-config.js"></script>
+  <script src="user-management.js"></script>
 </body>
 </html>
-
