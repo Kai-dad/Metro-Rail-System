@@ -11,6 +11,7 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 // DOM elements
 const usersTableBody = document.getElementById('users-table-body');
@@ -21,18 +22,29 @@ const connectionStatus = document.getElementById('connection-status');
 
 // Store users data
 let users = [];
+let currentUser = null;
 
 // Function to show connection status
-function showConnectionStatus(message, isError = false) {
+function showConnectionStatus(message, type = 'info') {
   connectionStatus.textContent = message;
-  connectionStatus.className = isError ? 'connection-status error' : 'connection-status connected';
-  
-  // Hide status after 5 seconds unless it's an error
-  if (!isError) {
-    setTimeout(() => {
-      connectionStatus.style.display = 'none';
-    }, 5000);
-  }
+  connectionStatus.className = `connection-status ${type}`;
+}
+
+// Function to handle authentication state changes
+function setupAuthStateListener() {
+  auth.onAuthStateChanged((user) => {
+    if (user) {
+      currentUser = user;
+      showConnectionStatus('✅ Authenticated. Loading users...', 'connected');
+      fetchUsers();
+    } else {
+      // Not authenticated, redirect to login
+      showConnectionStatus('🔒 Authentication required. Redirecting to login...', 'warning');
+      setTimeout(() => {
+        window.location.href = '../login.html';
+      }, 2000);
+    }
+  });
 }
 
 // Function to fetch users from Firebase
@@ -45,7 +57,8 @@ async function fetchUsers() {
     
     if (snapshot.empty) {
       usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found in the database.</td></tr>';
-      showConnectionStatus('Connected successfully, but no users found.', false);
+      showConnectionStatus('✅ Connected. No users found in database.', 'connected');
+      searchInput.disabled = false;
       return;
     }
     
@@ -58,19 +71,53 @@ async function fetchUsers() {
     });
     
     renderUsers(users);
-    showConnectionStatus('Connected successfully. Users loaded.', false);
+    showConnectionStatus(`✅ Connected. Loaded ${users.length} users.`, 'connected');
+    searchInput.disabled = false;
   } catch (error) {
     console.error('Error fetching users:', error);
-    usersTableBody.innerHTML = `
-      <tr>
-        <td colspan="5" class="error">
-          Error loading users. Please check your connection and try again.
-          <br>
-          <button class="retry-btn" onclick="fetchUsers()">Retry</button>
-        </td>
-      </tr>
-    `;
-    showConnectionStatus('Connection error: ' + error.message, true);
+    
+    if (error.code === 'permission-denied') {
+      usersTableBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="error">
+            🔐 Firebase Permission Error: Unable to load users due to security rules.
+            <br><br>
+            Please add the following rules to your Firestore security rules:
+            <pre>
+match /users/{userId} {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null && request.auth.uid == userId;
+}
+match /users/{document} {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null;
+}
+            </pre>
+            <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+          </td>
+        </tr>
+      `;
+      showConnectionStatus('❌ Permission denied. Please check Firebase Security Rules.', 'error');
+    } else if (error.code === 'unauthenticated') {
+      showConnectionStatus('🔒 Authentication required. Please login again.', 'warning');
+      setTimeout(() => {
+        auth.signOut();
+        window.location.href = '../login.html';
+      }, 2000);
+    } else {
+      usersTableBody.innerHTML = `
+        <tr>
+          <td colspan="5" class="error">
+            Error loading users: ${error.message}
+            <br>
+            <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+          </td>
+        </tr>
+      `;
+      showConnectionStatus('❌ Connection error: ' + error.message, 'error');
+    }
+    
+    searchInput.disabled = true;
   }
 }
 
@@ -95,21 +142,28 @@ function renderUsers(usersToRender) {
       } catch (e) {
         console.error('Error formatting date:', e);
       }
+    } else if (user.metadata && user.metadata.creationTime) {
+      try {
+        createdAt = new Date(user.metadata.creationTime).toLocaleDateString();
+      } catch (e) {
+        console.error('Error formatting metadata date:', e);
+      }
     }
     
     // Determine user status
-    const isActive = user.status !== false; // Default to active if status is not set
-    const statusBadge = isActive ? 
-      '<span class="status-badge status-active">Active</span>' : 
-      '<span class="status-badge status-inactive">Inactive</span>';
+    const isCurrentUser = currentUser && user.id === currentUser.uid;
+    const statusBadge = isCurrentUser ? 
+      '<span class="status-badge status-active">Current User</span>' : 
+      '<span class="status-badge status-active">Active</span>';
     
-    // Use displayName if available, otherwise fall back to username or email
-    const username = user.displayName || user.username || user.email.split('@')[0];
+    // Use displayName if available, otherwise fall back to email
+    const displayName = user.displayName || user.email || 'N/A';
+    const email = user.email || 'N/A';
     
     row.innerHTML = `
-      <td>${username}</td>
-      <td>${user.email || 'N/A'}</td>
-      <td>${user.role || 'user'}</td>
+      <td class="user-id">${user.id}</td>
+      <td>${email}</td>
+      <td>${displayName}</td>
       <td>${createdAt}</td>
       <td>${statusBadge}</td>
     `;
@@ -128,10 +182,13 @@ function searchUsers() {
   }
   
   const filteredUsers = users.filter(user => {
-    const username = (user.displayName || user.username || '').toLowerCase();
+    const displayName = (user.displayName || '').toLowerCase();
     const email = (user.email || '').toLowerCase();
+    const uid = (user.id || '').toLowerCase();
     
-    return username.includes(searchTerm) || email.includes(searchTerm);
+    return displayName.includes(searchTerm) || 
+           email.includes(searchTerm) || 
+           uid.includes(searchTerm);
   });
   
   renderUsers(filteredUsers);
@@ -139,17 +196,29 @@ function searchUsers() {
 
 // Function to handle logout
 function handleLogout() {
-  // Simple logout without Firebase Auth
   if (confirm('Are you sure you want to logout?')) {
-    window.location.href = 'login.html';
+    auth.signOut().then(() => {
+      window.location.href = '../login.html';
+    }).catch((error) => {
+      console.error('Error signing out:', error);
+      alert('Error signing out: ' + error.message);
+    });
   }
 }
 
-// Event listeners
-document.addEventListener('DOMContentLoaded', fetchUsers);
-searchInput.addEventListener('input', searchUsers);
-refreshBtn.addEventListener('click', fetchUsers);
-logoutBtn.addEventListener('click', handleLogout);
+// Initialize the application
+function initApp() {
+  // Event listeners
+  searchInput.addEventListener('input', searchUsers);
+  refreshBtn.addEventListener('click', fetchUsers);
+  logoutBtn.addEventListener('click', handleLogout);
+  
+  // Set up auth state listener
+  setupAuthStateListener();
+}
+
+// Start the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', initApp);
 
 // Export functions to global scope for retry button
 window.fetchUsers = fetchUsers;
