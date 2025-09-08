@@ -14,20 +14,37 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 
 // DOM elements
-const usersTableBody = document.getElementById('users-table-body');
-const searchInput = document.getElementById('search-input');
-const refreshBtn = document.getElementById('refresh-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const connectionStatus = document.getElementById('connection-status');
+let usersTableBody, searchInput, refreshBtn, logoutBtn, connectionStatus;
 
 // Store users data
 let users = [];
 let currentUser = null;
 
+// Function to safely get DOM elements
+function getDOMElements() {
+  usersTableBody = document.getElementById('users-table-body');
+  searchInput = document.getElementById('search-input');
+  refreshBtn = document.getElementById('refresh-btn');
+  logoutBtn = document.getElementById('logout-btn');
+  connectionStatus = document.getElementById('connection-status');
+  
+  // Check if all elements exist
+  if (!usersTableBody || !searchInput || !refreshBtn || !logoutBtn || !connectionStatus) {
+    console.error('One or more DOM elements not found');
+    return false;
+  }
+  
+  return true;
+}
+
 // Function to show connection status
 function showConnectionStatus(message, type = 'info') {
-  connectionStatus.textContent = message;
-  connectionStatus.className = `connection-status ${type}`;
+  if (connectionStatus) {
+    connectionStatus.textContent = message;
+    connectionStatus.className = `connection-status ${type}`;
+  } else {
+    console.log(`Connection Status (${type}): ${message}`);
+  }
 }
 
 // Function to handle authentication state changes
@@ -50,15 +67,19 @@ function setupAuthStateListener() {
 // Function to fetch users from Firebase
 async function fetchUsers() {
   try {
-    usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading users...</td></tr>';
+    if (usersTableBody) {
+      usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading users...</td></tr>';
+    }
     
     const snapshot = await db.collection('users').get();
     users = [];
     
     if (snapshot.empty) {
-      usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found in the database.</td></tr>';
+      if (usersTableBody) {
+        usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found in the database.</td></tr>';
+      }
       showConnectionStatus('✅ Connected. No users found in database.', 'connected');
-      searchInput.disabled = false;
+      if (searchInput) searchInput.disabled = false;
       return;
     }
     
@@ -72,18 +93,19 @@ async function fetchUsers() {
     
     renderUsers(users);
     showConnectionStatus(`✅ Connected. Loaded ${users.length} users.`, 'connected');
-    searchInput.disabled = false;
+    if (searchInput) searchInput.disabled = false;
   } catch (error) {
     console.error('Error fetching users:', error);
     
-    if (error.code === 'permission-denied') {
-      usersTableBody.innerHTML = `
-        <tr>
-          <td colspan="5" class="error">
-            🔐 Firebase Permission Error: Unable to load users due to security rules.
-            <br><br>
-            Please add the following rules to your Firestore security rules:
-            <pre>
+    if (usersTableBody) {
+      if (error.code === 'permission-denied') {
+        usersTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="error">
+              🔐 Firebase Permission Error: Unable to load users due to security rules.
+              <br><br>
+              Please add the following rules to your Firestore security rules:
+              <pre>
 match /users/{userId} {
   allow read: if request.auth != null;
   allow write: if request.auth != null && request.auth.uid == userId;
@@ -92,37 +114,40 @@ match /users/{document} {
   allow read: if request.auth != null;
   allow write: if request.auth != null;
 }
-            </pre>
-            <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
-          </td>
-        </tr>
-      `;
-      showConnectionStatus('❌ Permission denied. Please check Firebase Security Rules.', 'error');
-    } else if (error.code === 'unauthenticated') {
-      showConnectionStatus('🔒 Authentication required. Please login again.', 'warning');
-      setTimeout(() => {
-        auth.signOut();
-        window.location.href = '../login.html';
-      }, 2000);
-    } else {
-      usersTableBody.innerHTML = `
-        <tr>
-          <td colspan="5" class="error">
-            Error loading users: ${error.message}
-            <br>
-            <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
-          </td>
-        </tr>
-      `;
-      showConnectionStatus('❌ Connection error: ' + error.message, 'error');
+              </pre>
+              <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+            </td>
+          </tr>
+        `;
+        showConnectionStatus('❌ Permission denied. Please check Firebase Security Rules.', 'error');
+      } else if (error.code === 'unauthenticated') {
+        showConnectionStatus('🔒 Authentication required. Please login again.', 'warning');
+        setTimeout(() => {
+          if (auth) auth.signOut();
+          window.location.href = '../login.html';
+        }, 2000);
+      } else {
+        usersTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="error">
+              Error loading users: ${error.message}
+              <br>
+              <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+            </td>
+          </tr>
+        `;
+        showConnectionStatus('❌ Connection error: ' + error.message, 'error');
+      }
     }
     
-    searchInput.disabled = true;
+    if (searchInput) searchInput.disabled = true;
   }
 }
 
 // Function to render users in the table
 function renderUsers(usersToRender) {
+  if (!usersTableBody) return;
+  
   if (usersToRender.length === 0) {
     usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found.</td></tr>';
     return;
@@ -161,7 +186,7 @@ function renderUsers(usersToRender) {
     const email = user.email || 'N/A';
     
     row.innerHTML = `
-      <td class="user-id">${user.id}</td>
+      <td class="user-id">${user.id.substring(0, 8)}...</td>
       <td>${email}</td>
       <td>${displayName}</td>
       <td>${createdAt}</td>
@@ -174,6 +199,8 @@ function renderUsers(usersToRender) {
 
 // Function to search users
 function searchUsers() {
+  if (!searchInput || !usersTableBody) return;
+  
   const searchTerm = searchInput.value.toLowerCase();
   
   if (!searchTerm) {
@@ -197,17 +224,28 @@ function searchUsers() {
 // Function to handle logout
 function handleLogout() {
   if (confirm('Are you sure you want to logout?')) {
-    auth.signOut().then(() => {
+    if (auth) {
+      auth.signOut().then(() => {
+        window.location.href = '../login.html';
+      }).catch((error) => {
+        console.error('Error signing out:', error);
+        alert('Error signing out: ' + error.message);
+      });
+    } else {
       window.location.href = '../login.html';
-    }).catch((error) => {
-      console.error('Error signing out:', error);
-      alert('Error signing out: ' + error.message);
-    });
+    }
   }
 }
 
 // Initialize the application
 function initApp() {
+  // Get DOM elements safely
+  if (!getDOMElements()) {
+    console.error('Failed to initialize app: DOM elements not found');
+    showConnectionStatus('❌ Error initializing application', 'error');
+    return;
+  }
+  
   // Event listeners
   searchInput.addEventListener('input', searchUsers);
   refreshBtn.addEventListener('click', fetchUsers);
