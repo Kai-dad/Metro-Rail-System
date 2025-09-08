@@ -28,11 +28,9 @@
     
     <main class="user-management">
       <h1>User Management</h1>
-      
-      <div id="connection-status" class="connection-status"></div>
-      
+
       <section class="user-controls">
-        <input type="text" id="search-input" placeholder="Search by username or email..." />
+        <input type="text" id="search-input" placeholder="Search by username or email..." disabled />
         <button id="refresh-btn">Refresh Users</button>
       </section>
 
@@ -40,9 +38,9 @@
         <table class="user-table">
           <thead>
             <tr>
-              <th>Username</th>
+              <th>User ID</th>
               <th>Email</th>
-              <th>Role</th>
+              <th>Display Name</th>
               <th>Account Created</th>
               <th>Status</th>
             </tr>
@@ -60,7 +58,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="javascript/user-management.js"></script>
 </body>
 </html>
-
