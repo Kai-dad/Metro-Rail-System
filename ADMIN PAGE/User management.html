@@ -29,27 +29,6 @@
     <main class="user-management">
       <h1>User Management</h1>
       
-      <div id="connection-status" class="connection-status">
-        🔄 Connecting to Firebase...
-      </div>
-
-      <div class="firebase-rules-help">
-        <h3>Firebase Rules Required</h3>
-        <p>To use this user management system, you need to add these rules to your Firestore security rules:</p>
-        <pre>
-// Add this to your existing rules
-match /users/{userId} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null && request.auth.uid == userId;
-}
-match /users/{document} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null;
-}
-        </pre>
-        <p class="warning">⚠️ These rules allow any authenticated user to read all users, but users can only modify their own data.</p>
-      </div>
-
       <section class="user-controls">
         <input type="text" id="search-input" placeholder="Search by username or email..." disabled />
         <button id="refresh-btn">Refresh Users</button>
@@ -83,3 +62,4 @@ match /users/{document} {
   <script src="javascript/user-management.js"></script>
 </body>
 </html>
+
