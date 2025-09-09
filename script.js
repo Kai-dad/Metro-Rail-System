@@ -1,3 +1,5 @@
+// ---------- MAPS / ROUTES / HOME / FAQ / SLIDES ----------
+
 let homeMap, scheduleMap;
 let originMarker, destMarker, routeLine;
 let currentRouteIndex = 0;
@@ -19,7 +21,7 @@ const routes = {
   "pretoria-dewildt": { name: "Pretoria → De Wildt", origin: "Pretoria", destination: "De Wildt", substations: [ { name: "Pretoria", stopTime: 2 }, { name: "De Wildt", travelTime: 35 } ], price: "R7.20", originCoords: [-25.7548, 28.1868], destCoords: [-25.61248, 27.91062], color: '#2ecc71' }
 };
 
-// ✅ Firebase
+// ---------- FIREBASE (same config as admin) ----------
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
@@ -28,11 +30,16 @@ const firebaseConfig = {
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
 
-// ================= Core Functions =================
+// Make sure firebase SDK scripts are loaded *before* this file in index.html
+if (typeof firebase === 'undefined') {
+  console.error("Firebase SDK not found. Ensure firebase-app-compat.js is loaded before script.js");
+} else {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = (typeof firebase !== 'undefined') ? firebase.firestore() : null;
 
+// ---------- CORE APP FLOW ----------
 function init() {
   window.addEventListener('hashchange', () => {
     const hash = location.hash.replace('#', '') || 'home';
@@ -56,8 +63,7 @@ function showPage(pageId) {
   }
 }
 
-// ================= Home Page =================
-
+// ---------- HOME PAGE ----------
 function initRoutePage() {
   initHomeMap();
   updateAll();
@@ -95,9 +101,12 @@ function updateMapRoute() {
 function updateRoute() {
   currentRouteIndex = (currentRouteIndex + 1) % homeRoutes.length;
   const route = homeRoutes[currentRouteIndex];
-  document.getElementById('origin').textContent = route.origin;
-  document.getElementById('destination').textContent = route.destination;
-  document.getElementById('tripCost').textContent = route.price;
+  const originEl = document.getElementById('origin');
+  const destEl = document.getElementById('destination');
+  const costEl = document.getElementById('tripCost');
+  if (originEl) originEl.textContent = route.origin;
+  if (destEl) destEl.textContent = route.destination;
+  if (costEl) costEl.textContent = route.price;
   updateMapRoute();
 }
 
@@ -111,8 +120,10 @@ function updateClock() {
   let compactTime = now.toLocaleTimeString('en-US', compactTimeOptions);
   currentTime = currentTime.replace(/^24:/, '00:');
   compactTime = compactTime.replace(/^24:/, '00:');
-  document.getElementById('currentDateTime').textContent = `${currentDate} ${currentTime}`;
-  document.getElementById('currentDateTimeCompact').textContent = `${currentDate}, ${compactTime}`;
+  const dateTimeEl = document.getElementById('currentDateTime');
+  const dateTimeCompactEl = document.getElementById('currentDateTimeCompact');
+  if (dateTimeEl) dateTimeEl.textContent = `${currentDate} ${currentTime}`;
+  if (dateTimeCompactEl) dateTimeCompactEl.textContent = `${currentDate}, ${compactTime}`;
   const yearEl = document.getElementById('currentYear');
   if (yearEl) yearEl.textContent = now.getFullYear();
 }
@@ -127,8 +138,7 @@ function updateTrainCountdown() {
     const trainTotalSeconds = trainHours * 3600 + trainMinutes * 60;
     let diff = trainTotalSeconds - currentTotalSeconds;
     if (diff > 0 && diff < secDiff) {
-      secDiff = diff;
-      nextTrain = time;
+      secDiff = diff; nextTrain = time;
     }
   }
   const countdownElement = document.getElementById('countdown');
@@ -151,11 +161,9 @@ function updateTrainCountdown() {
     countdownElement.textContent = `${hours}h ${minutes}m (${formattedTime} next day)`;
   }
 }
-
 function updateAll() { updateClock(); updateTrainCountdown(); }
 
-// ================= Schedule Page =================
-
+// ---------- SCHEDULE PAGE: Firestore loader + renderer ----------
 function initSchedulePage() {
   initScheduleMap();
   setupScheduleEvents();
@@ -164,63 +172,136 @@ function initSchedulePage() {
 
 function initScheduleMap() {
   if (!document.getElementById('scheduleMap')) return;
-  scheduleMap = L.map('scheduleMap').setView([-25.7479, 28.2293], 12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(scheduleMap);
+  if (!scheduleMap) {
+    scheduleMap = L.map('scheduleMap').setView([-25.7479, 28.2293], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors' }).addTo(scheduleMap);
+  }
   showAllRoutes();
 }
 
 function showAllRoutes() {
+  if (!scheduleMap) return;
   Object.values(routes).forEach(route => {
     L.polyline([route.originCoords, route.destCoords], { color: route.color, weight: 3, opacity: 0.7 }).addTo(scheduleMap);
   });
   const allCoords = Object.values(routes).flatMap(route => [route.originCoords, route.destCoords]);
-  scheduleMap.fitBounds(allCoords);
+  if (allCoords.length) scheduleMap.fitBounds(allCoords);
+}
+
+function formatFieldTime(value) {
+  // handles Firestore Timestamp or string
+  if (value == null) return "N/A";
+  if (typeof value === 'object' && typeof value.toDate === 'function') {
+    const d = value.toDate();
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+  return value;
 }
 
 function loadSchedulesFromFirestore() {
   const tbody = document.querySelector("#trainSchedule tbody");
   const routeSelect = document.getElementById("routeSelect");
+  if (!tbody) {
+    console.warn("#trainSchedule tbody not found in DOM.");
+    return;
+  }
+  if (!db) {
+    tbody.innerHTML = '<tr><td colspan="6">Firestore not initialized. Check firebase scripts and config.</td></tr>';
+    console.error("Firestore not initialized.");
+    return;
+  }
+
   let schedules = [];
-  db.collection("trainSchedules").orderBy("createdAt", "desc").onSnapshot(snapshot => {
-    schedules = snapshot.docs.map(doc => doc.data());
-    renderSchedule(schedules, routeSelect.value);
+
+  // Use createdAt ordering (admin sets this). Add error handler to surface permission issues.
+  const query = db.collection("trainSchedules").orderBy("createdAt", "desc");
+
+  query.onSnapshot(snapshot => {
+    console.log("Firestore: onSnapshot fired. docs:", snapshot.size);
+    if (snapshot.empty) {
+      tbody.innerHTML = '<tr><td colspan="6">No schedules found.</td></tr>';
+      document.getElementById('realTimeUpdate')?.textContent = "No schedule data available";
+      return;
+    }
+
+    schedules = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return { id: doc.id, ...data };
+    });
+
+    console.log("Schedules loaded:", schedules.map(s => s.id));
+    // show sample fields for first 3 docs
+    schedules.slice(0,3).forEach(s => console.log("sample:", s.id, s.trainNumber, s.route, s.departure, s.arrival, s.status));
+
+    renderSchedule(schedules, routeSelect ? routeSelect.value : 'all');
+  }, err => {
+    console.error("Firestore onSnapshot error:", err);
+    tbody.innerHTML = `<tr><td colspan="6">Error loading schedules: ${err.message}</td></tr>`;
+    document.getElementById('realTimeUpdate')?.textContent = "Error loading schedule (see console)";
   });
-  routeSelect.addEventListener("change", () => renderSchedule(schedules, routeSelect.value));
+
+  if (routeSelect) {
+    routeSelect.addEventListener("change", () => renderSchedule(schedules, routeSelect.value));
+  }
 }
 
 function renderSchedule(schedules, selectedRoute) {
   const tbody = document.querySelector("#trainSchedule tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
+
+  let rowsAdded = 0;
+
   schedules.forEach(train => {
-    if (selectedRoute === "all" || train.route === selectedRoute) {
-      const routeInfo = routes[train.route];
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${train.trainNumber}</td>
-        <td>${routeInfo ? routeInfo.name : train.route}</td>
-        <td>${train.departure}</td>
-        <td>${train.arrival}</td>
-        <td class="status-${train.status.toLowerCase().replace(' ', '-')}">${train.status}</td>
-        <td>${routeInfo ? routeInfo.price : (train.fare || "N/A")}</td>
-      `;
-      tbody.appendChild(row);
-    }
+    if (!train) return;
+    if (selectedRoute && selectedRoute !== 'all' && train.route !== selectedRoute) return;
+
+    const routeInfo = routes[train.route] || null;
+    const departure = formatFieldTime(train.departure);
+    const arrival = formatFieldTime(train.arrival);
+    const status = train.status || "On Time";
+    const fare = routeInfo ? routeInfo.price : (train.fare || "N/A");
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${train.trainNumber || "N/A"}</td>
+      <td>${routeInfo ? routeInfo.name : (train.route || "N/A")}</td>
+      <td>${departure}</td>
+      <td>${arrival}</td>
+      <td class="status-${String(status).toLowerCase().replace(/\s+/g,'-')}">${status}</td>
+      <td>${fare}</td>
+    `;
+    tbody.appendChild(row);
+    rowsAdded++;
   });
-  updateMapForRoute(selectedRoute);
+
+  if (rowsAdded === 0) {
+    tbody.innerHTML = '<tr><td colspan="6">No schedules match the selected route or no upcoming schedules.</td></tr>';
+  }
+
+  updateMapForRoute(selectedRoute || 'all');
 }
 
 function updateMapForRoute(routeKey) {
   if (!scheduleMap) return;
-  scheduleMap.eachLayer(layer => { if (layer instanceof L.Polyline) scheduleMap.removeLayer(layer); });
+  // remove polylines we added earlier (keep tile layers)
+  scheduleMap.eachLayer(layer => {
+    if (layer instanceof L.Polyline) scheduleMap.removeLayer(layer);
+  });
+
   if (routeKey === "all") {
     showAllRoutes();
-  } else if (routes[routeKey]) {
-    const route = routes[routeKey];
-    L.polyline([route.originCoords, route.destCoords], { color: route.color, weight: 4, opacity: 0.9 }).addTo(scheduleMap);
-    L.marker(route.originCoords).addTo(scheduleMap).bindPopup(`Origin: ${route.origin}`);
-    L.marker(route.destCoords).addTo(scheduleMap).bindPopup(`Destination: ${route.destination}`);
-    scheduleMap.fitBounds([route.originCoords, route.destCoords]);
+    return;
   }
+  if (!routes[routeKey]) {
+    showAllRoutes();
+    return;
+  }
+  const route = routes[routeKey];
+  L.polyline([route.originCoords, route.destCoords], { color: route.color, weight: 4, opacity: 0.9 }).addTo(scheduleMap);
+  L.marker(route.originCoords).addTo(scheduleMap).bindPopup(`Origin: ${route.origin}`);
+  L.marker(route.destCoords).addTo(scheduleMap).bindPopup(`Destination: ${route.destination}`);
+  scheduleMap.fitBounds([route.originCoords, route.destCoords]);
 }
 
 function setupScheduleEvents() {
@@ -228,9 +309,8 @@ function setupScheduleEvents() {
   if (routeSelect) routeSelect.addEventListener('change', () => {});
 }
 
-// ================= FAQ Page =================
-
-const faqData = [ /* unchanged FAQ array */ 
+// ---------- FAQ ----------
+const faqData = [
   { question: "How do I purchase a Metrorail ticket?", answer: "You can purchase tickets at any Metrorail station ticket office or from authorized ticket vendors. We also offer mobile ticketing through our official app available on iOS and Android.", category: "ticketing" },
   { question: "What payment methods are accepted?", answer: "We accept cash, debit cards, credit cards (Visa, Mastercard), and mobile payment options like SnapScan. Some stations also accept transport vouchers.", category: "ticketing" },
   { question: "Are there discounts for students or seniors?", answer: "Yes, students with valid student IDs receive a 30% discount. Seniors (65+) receive a 50% discount on all fares. Proof of age or student status is required when purchasing discounted tickets.", category: "ticketing" },
@@ -261,10 +341,7 @@ function renderFAQs(category = 'all', searchTerm = '') {
   filteredFAQs.forEach((faq) => {
     const faqItem = document.createElement('div');
     faqItem.className = 'faq-item';
-    faqItem.innerHTML = `
-      <div class="faq-question"><span>${faq.question} <span class="faq-category">${faq.category}</span></span><i class="fas fa-chevron-down"></i></div>
-      <div class="faq-answer"><p>${faq.answer}</p></div>
-    `;
+    faqItem.innerHTML = `<div class="faq-question"><span>${faq.question} <span class="faq-category">${faq.category}</span></span><i class="fas fa-chevron-down"></i></div><div class="faq-answer"><p>${faq.answer}</p></div>`;
     faqItem.addEventListener('click', () => faqItem.classList.toggle('active'));
     faqAccordion.appendChild(faqItem);
   });
@@ -282,11 +359,11 @@ function setupFAQEvents() {
       renderFAQs(category, searchInput.value.toLowerCase());
     });
   });
-  searchButton.addEventListener('click', () => {
+  if (searchButton) searchButton.addEventListener('click', () => {
     const activeCategory = document.querySelector('.category-btn.active').dataset.category;
     renderFAQs(activeCategory, searchInput.value.toLowerCase());
   });
-  searchInput.addEventListener('keyup', (e) => {
+  if (searchInput) searchInput.addEventListener('keyup', (e) => {
     if (e.key === 'Enter') {
       const activeCategory = document.querySelector('.category-btn.active').dataset.category;
       renderFAQs(activeCategory, searchInput.value.toLowerCase());
@@ -294,22 +371,17 @@ function setupFAQEvents() {
   });
 }
 
-// ================= Slideshow =================
-
+// ---------- SLIDESHOW ----------
 let slideIndex = 0;
 function initSlideshow() { showSlides(); }
 function showSlides() {
-  const slides = document.getElementsByClassName("mySlides");
-  const dots = document.getElementsByClassName("dot");
+  const slides = document.getElementsByClassName("slide");
   for (let i = 0; i < slides.length; i++) slides[i].style.display = "none";
   slideIndex++;
   if (slideIndex > slides.length) slideIndex = 1;
-  for (let i = 0; i < dots.length; i++) dots[i].className = dots[i].className.replace(" active", "");
-  if (slides[slideIndex-1]) slides[slideIndex-1].style.display = "block";  
-  if (dots[slideIndex-1]) dots[slideIndex-1].className += " active";
+  if (slides[slideIndex-1]) slides[slideIndex-1].style.display = "block";
   setTimeout(showSlides, 5000);
 }
 
-// ================= Run App =================
-
+// ---------- START ----------
 document.addEventListener('DOMContentLoaded', init);
