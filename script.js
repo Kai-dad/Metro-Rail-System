@@ -220,10 +220,9 @@ function loadSchedulesFromFirestore() {
     console.log("Firestore: onSnapshot fired. docs:", snapshot.size);
     if (snapshot.empty) {
       tbody.innerHTML = '<tr><td colspan="6">No schedules found.</td></tr>';
-      const el = document.getElementById('realTimeUpdate');
-if (el) {
-  el.textContent = "No schedule data available";
-}
+    const el = document.getElementById('realTimeUpdate');
+el && (el.textContent = "No schedule data available");
+
 
       return;
     }
