@@ -116,7 +116,57 @@ function loadTrainSchedules() {
 
 // === Rest of your original code (unchanged) === //
 
-const faqData = [ /* ... FAQ unchanged ... */ ];
+const faqData = [ {
+    question: "How do I purchase a Metrorail ticket?",
+    answer: "You can purchase tickets at any Metrorail station ticket office or from authorized ticket vendors. We also offer mobile ticketing through our official app available on iOS and Android.",
+    category: "ticketing"
+  },
+  {
+    question: "What payment methods are accepted?",
+    answer: "We accept cash, debit cards, credit cards (Visa, Mastercard), and mobile payment options like SnapScan. Some stations also accept transport vouchers.",
+    category: "ticketing"
+  },
+  {
+    question: "Are there discounts for students or seniors?",
+    answer: "Yes, students with valid student IDs receive a 30% discount. Seniors (65+) receive a 50% discount on all fares. Proof of age or student status is required when purchasing discounted tickets.",
+    category: "ticketing"
+  },
+  {
+    question: "What safety measures are in place on Metrorail?",
+    answer: "We have security personnel at major stations, CCTV surveillance, emergency call points on trains and platforms, and regular patrols by railway police. Please report any concerns to staff immediately.",
+    category: "safety"
+  },
+  {
+    question: "What should I do in an emergency?",
+    answer: "Remain calm and follow instructions from staff. Use the emergency call points located on trains and platforms. In case of evacuation, move calmly to designated safe areas.",
+    category: "safety"
+  },
+  {
+    question: "How often do trains run?",
+    answer: "Frequency varies by route and time of day. The Saulsville-Pretoria line runs every 90 minutes during peak hours (6-9am and 4-7pm) and every 2 hours off-peak. Check our schedule page for exact times.",
+    category: "schedule"
+  },
+  {
+    question: "What happens if my train is delayed?",
+    answer: "We announce delays through station announcements and our mobile app. For delays over 30 minutes, you may use your ticket on the next available train. No refunds are given for delays.",
+    category: "schedule"
+  },
+  {
+    question: "Is Metrorail wheelchair accessible?",
+    answer: "Most of our newer stations have wheelchair access, lifts, and designated spaces on trains. Please check our accessibility map or contact customer service for specific station information.",
+    category: "accessibility"
+  },
+  {
+    question: "Can I bring my bicycle on the train?",
+    answer: "Folding bicycles are allowed at all times. Standard bicycles are permitted outside peak hours (9am-4pm and after 7pm) on designated carriages. A bicycle ticket is required (R15).",
+    category: "accessibility"
+  },
+  {
+    question: "What is the luggage policy?",
+    answer: "You may bring up to 2 items of luggage not exceeding 25kg each or 1m in length. Luggage must not block aisles or doors. Oversized items may require special arrangement.",
+    category: "ticketing"
+  }
+];
 
 function init() {
   window.addEventListener('hashchange', () => {
