@@ -1,3 +1,4 @@
+// Import Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { 
   getAuth, 
@@ -6,7 +7,14 @@ import {
   updateProfile
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
@@ -16,15 +24,17 @@ const firebaseConfig = {
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
 
-
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-
+// Admin email (hardcoded for redirect check)
 const adminEmail = "admin@metrorail.com"; 
 
 let isLogin = true;
 
+// DOM Elements
 const formTitle = document.getElementById("form-title");
 const usernameField = document.getElementById("username-field");
 const toggleLink = document.getElementById("toggle-link");
@@ -32,6 +42,7 @@ const submitBtn = document.getElementById("submit-btn");
 const message = document.getElementById("message");
 const authForm = document.getElementById("auth-form");
 
+// Toggle between Login/Register
 toggleLink.addEventListener("click", (e) => {
   e.preventDefault();
   isLogin = !isLogin;
@@ -51,6 +62,7 @@ toggleLink.addEventListener("click", (e) => {
   }
 });
 
+// Handle Login / Register
 authForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -63,13 +75,13 @@ authForm.addEventListener("submit", async (e) => {
 
   try {
     if (isLogin) {
-     
+      // 🔑 Login user
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const loggedInEmail = userCredential.user.email;
 
       message.textContent = `Welcome back, ${loggedInEmail}`;
 
-    
+      // Redirect based on role
       if (loggedInEmail.toLowerCase() === adminEmail.toLowerCase()) {
         window.location.href = "ADMIN PAGE/index.html";
       } else {
@@ -77,22 +89,30 @@ authForm.addEventListener("submit", async (e) => {
       }
 
     } else {
-     
+      // 📝 Register new user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      if (username) {
-        await updateProfile(userCredential.user, { displayName: username });
-      }
-      message.textContent = `Account created for ${userCredential.user.email}`;
+      const user = userCredential.user;
 
+      // Update displayName if provided
+      if (username) {
+        await updateProfile(user, { displayName: username });
+      }
+
+      // ✅ Save user info into Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        displayName: username || user.displayName || "",
+        createdAt: serverTimestamp()
+      });
+
+      message.textContent = `Account created for ${user.email}`;
     }
+
+    // Reset form after action
     authForm.reset();
+
   } catch (err) {
     message.style.color = "red";
     message.textContent = err.message;
   }
 });
-
-
-
-
-
