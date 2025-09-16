@@ -143,7 +143,20 @@ match /users/{document} {
     if (searchInput) searchInput.disabled = true;
   }
 }
+// Delete user (from Firestore collection "users")
+async function deleteUser(userId) {
+  if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
 
+  try {
+    await db.collection('users').doc(userId).delete();
+    showConnectionStatus(`🗑️ User ${userId} deleted successfully.`, 'connected');
+    fetchUsers(); // Refresh table
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    showConnectionStatus('❌ Error deleting user: ' + error.message, 'error');
+    alert('Error deleting user: ' + error.message);
+  }
+}
 // Function to render users in the table
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
