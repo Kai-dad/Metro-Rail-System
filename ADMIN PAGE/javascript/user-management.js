@@ -145,6 +145,8 @@ match /users/{document} {
 }
 // Delete user (from Firestore collection "users")
 async function deleteUser(userId) {
+  ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
+
   if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
 
   try {
@@ -155,7 +157,7 @@ async function deleteUser(userId) {
     console.error('Error deleting user:', error);
     showConnectionStatus('❌ Error deleting user: ' + error.message, 'error');
     alert('Error deleting user: ' + error.message);
-    ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
+    
 
   }
 }
