@@ -197,6 +197,20 @@ function renderUsers(usersToRender) {
     const statusBadge = isCurrentUser ? 
       '<span class="status-badge status-active">Current User</span>' : 
       '<span class="status-badge status-active">Active</span>';
+
+    const isCurrentUser = user.email === currentUserEmail;
+
+row.innerHTML = `
+  <td>${user.id}</td>
+  <td>${user.email}</td>
+  <td>${user.displayName || ''}</td>
+  <td>${user.createdAt ? user.createdAt.toDate().toLocaleDateString() : ''}</td>
+  <td>
+    ${isCurrentUser ? 'Current User' : 'Active'}
+    ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
+  </td>
+`;
+
     
     // Use displayName if available, otherwise fall back to email
     const displayName = user.displayName || user.email || 'N/A';
