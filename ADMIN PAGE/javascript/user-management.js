@@ -143,24 +143,8 @@ match /users/{document} {
     if (searchInput) searchInput.disabled = true;
   }
 }
-// Delete user (from Firestore collection "users")
-/*async function deleteUser(userId) {
-  ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
 
-  if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
 
-  try {
-    await db.collection('users').doc(userId).delete();
-    showConnectionStatus(`🗑️ User ${userId} deleted successfully.`, 'connected');
-    fetchUsers(); // Refresh table
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    showConnectionStatus('❌ Error deleting user: ' + error.message, 'error');
-    alert('Error deleting user: ' + error.message);
-    
-
-  }
-} */
 // Function to render users in the table
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
@@ -197,19 +181,6 @@ function renderUsers(usersToRender) {
     const statusBadge = isCurrentUser ? 
       '<span class="status-badge status-active">Current User</span>' : 
       '<span class="status-badge status-active">Active</span>';
-
-  /*  const isCurrentUser = user.email === currentUserEmail;
-
-row.innerHTML = `
-  <td>${user.id}</td>
-  <td>${user.email}</td>
-  <td>${user.displayName || ''}</td>
-  <td>${user.createdAt ? user.createdAt.toDate().toLocaleDateString() : ''}</td>
-  <td>
-    ${isCurrentUser ? 'Current User' : 'Active'}
-    ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
-  </td>
-`;*/
 
     
     // Use displayName if available, otherwise fall back to email
