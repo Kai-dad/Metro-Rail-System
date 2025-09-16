@@ -155,6 +155,8 @@ async function deleteUser(userId) {
     console.error('Error deleting user:', error);
     showConnectionStatus('❌ Error deleting user: ' + error.message, 'error');
     alert('Error deleting user: ' + error.message);
+    ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
+
   }
 }
 // Function to render users in the table
