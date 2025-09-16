@@ -144,7 +144,7 @@ match /users/{document} {
   }
 }
 // Delete user (from Firestore collection "users")
-async function deleteUser(userId) {
+/*async function deleteUser(userId) {
   ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
 
   if (!confirm('⚠️ Are you sure you want to delete this user? This action cannot be undone.')) return;
@@ -160,7 +160,7 @@ async function deleteUser(userId) {
     
 
   }
-}
+} */
 // Function to render users in the table
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
@@ -198,7 +198,7 @@ function renderUsers(usersToRender) {
       '<span class="status-badge status-active">Current User</span>' : 
       '<span class="status-badge status-active">Active</span>';
 
-    const isCurrentUser = user.email === currentUserEmail;
+  /*  const isCurrentUser = user.email === currentUserEmail;
 
 row.innerHTML = `
   <td>${user.id}</td>
@@ -209,7 +209,7 @@ row.innerHTML = `
     ${isCurrentUser ? 'Current User' : 'Active'}
     ${!isCurrentUser ? `<button class="delete-btn" onclick="deleteUser('${user.id}')">Delete</button>` : ''}
   </td>
-`;
+`;*/
 
     
     // Use displayName if available, otherwise fall back to email
