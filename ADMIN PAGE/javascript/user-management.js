@@ -144,7 +144,6 @@ match /users/{document} {
   }
 }
 
-
 // Function to render users in the table
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
@@ -181,7 +180,6 @@ function renderUsers(usersToRender) {
     const statusBadge = isCurrentUser ? 
       '<span class="status-badge status-active">Current User</span>' : 
       '<span class="status-badge status-active">Active</span>';
-
     
     // Use displayName if available, otherwise fall back to email
     const displayName = user.displayName || user.email || 'N/A';
@@ -262,3 +260,7 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 // Export functions to global scope for retry button
 window.fetchUsers = fetchUsers;
+
+
+        
+  
