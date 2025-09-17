@@ -238,6 +238,94 @@ function handleLogout() {
     }
   }
 }
+function renderUsers(usersToRender) {
+  if (!usersTableBody) return;
+
+  if (usersToRender.length === 0) {
+    usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found.</td></tr>';
+    return;
+  }
+
+  usersTableBody.innerHTML = '';
+
+  usersToRender.forEach(user => {
+    const row = document.createElement('tr');
+
+    let createdAt = 'N/A';
+    if (user.createdAt) {
+      try {
+        const date = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
+        createdAt = date.toLocaleDateString();
+      } catch (e) {
+        console.error('Error formatting date:', e);
+      }
+    }
+
+    const isCurrentUser = currentUser && user.id === currentUser.uid;
+    const statusBadge = isCurrentUser ? 
+      '<span class="status-badge status-active">Current User</span>' : 
+      '<span class="status-badge status-active">Active</span>';
+
+    const displayName = user.displayName || user.email || 'N/A';
+    const email = user.email || 'N/A';
+
+    row.innerHTML = `
+      <td class="user-id">${user.id.substring(0, 8)}...</td>
+      <td>${email}</td>
+      <td>${displayName}</td>
+      <td>${createdAt}</td>
+      <td>${statusBadge}</td>
+      <td>
+        <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
+          Check / Delete
+        </button>
+      </td>
+    `;
+
+    usersTableBody.appendChild(row);
+  });
+}
+
+async function checkAndDeleteUser(uid, email) {
+  try {
+    // Fetch user metadata
+    const userDoc = await db.collection('users').doc(uid).get();
+
+    if (!userDoc.exists) {
+      alert(`User ${email} not found in the database.`);
+      return;
+    }
+
+    const userData = userDoc.data();
+    const lastSignIn = userData.lastSignInTime ? new Date(userData.lastSignInTime) : null;
+
+    const now = new Date();
+    let inactive = false;
+
+    if (lastSignIn) {
+      const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
+      if (diffDays > 30) { // consider inactive if no sign in for 30+ days
+        inactive = true;
+      }
+    } else {
+      inactive = true; // no lastSignIn info = inactive
+    }
+
+    if (inactive) {
+      const confirmDelete = confirm(`User ${email} appears inactive. Do you want to delete this user?`);
+      if (confirmDelete) {
+        await db.collection('users').doc(uid).delete();
+        alert(`User ${email} has been deleted.`);
+        fetchUsers(); // refresh the table
+      }
+    } else {
+      alert(`User ${email} is active.`);
+    }
+  } catch (error) {
+    console.error('Error checking/deleting user:', error);
+    alert('Error checking/deleting user: ' + error.message);
+  }
+}
 
 // Initialize the application
 function initApp() {
