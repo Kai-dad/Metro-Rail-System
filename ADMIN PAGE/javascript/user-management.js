@@ -66,6 +66,28 @@ function setupAuthStateListener() {
   });
 }
 
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    // Save user to Firestore if not already there
+    const userRef = db.collection("users").doc(user.uid);
+    const doc = await userRef.get();
+
+    if (!doc.exists) {
+      await userRef.set({
+        email: user.email,
+        displayName: user.displayName || "",
+        createdAt: new Date(),
+        lastSignInTime: new Date()
+      });
+    } else {
+      // Update last login time
+      await userRef.update({
+        lastSignInTime: new Date()
+      });
+    }
+  }
+});
+
 // Function to fetch users from Firebase
 async function fetchUsers() {
   try {
