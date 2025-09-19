@@ -4,7 +4,7 @@ const firebaseConfig = {
   authDomain: "metro-rail-2de9c.firebaseapp.com",
   projectId: "metro-rail-2de9c",
  // storageBucket: "metro-rail-2de9c.firebasestorage.app",
-  storageBucket: "metro-rail-2de9c.appspot.com"
+  storageBucket: "metro-rail-2de9c.appspot.com",
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
