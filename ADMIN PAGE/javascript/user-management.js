@@ -169,7 +169,7 @@ match /users/{document} {
 }
 
 // Function to render users in the table
-function renderUsers(usersToRender) {
+/*function renderUsers(usersToRender) {
   if (!usersTableBody) return;
   
   if (usersToRender.length === 0) {
@@ -219,7 +219,7 @@ function renderUsers(usersToRender) {
     
     usersTableBody.appendChild(row);
   });
-}
+}*/
 
 // Function to search users
 function searchUsers() {
