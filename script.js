@@ -11,6 +11,22 @@ const firebaseConfig = {
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+
+admin.initializeApp();
+
+exports.deleteUserTrigger = functions.firestore
+  .document('users/{userId}')
+  .onDelete(async (snap, context) => {
+    const uid = context.params.userId;
+    try {
+      await admin.auth().deleteUser(uid);
+      console.log(`✅ Deleted auth user: ${uid}`);
+    } catch (error) {
+      console.error(`❌ Error deleting auth user ${uid}:`, error);
+    }
+  });
 
 // Init Firebase
 const app = initializeApp(firebaseConfig);
