@@ -78,8 +78,14 @@ const routes = {
     origin: "De Wildt",
     destination: "Pretoria",
     substations: [
-      { name: "De Wildt", stopTime: 2 },
-      { name: "Pretoria", travelTime: 35 }
+      { name: "Saulsville", stopTime: 2 },
+      { name: "Atteridgeville", travelTime: 5, stopTime: 2 },
+      { name: "Kalafong", travelTime: 5, stopTime: 2 },
+      { name: "Corona", travelTime: 5, stopTime: 2 },
+      { name: "Elandsfontein", travelTime: 5, stopTime: 2 },
+      { name: "Hercules", travelTime: 5, stopTime: 2 },
+      { name: "Pretoria-West", travelTime: 5, stopTime: 2 },
+      { name: "Pretoria", travelTime: 5 }
     ],
     price: "R6.80",
     originCoords: [-25.61248, 27.91062],
@@ -90,9 +96,15 @@ const routes = {
     name: "Pretoria → De Wildt",
     origin: "Pretoria",
     destination: "De Wildt",
-    substations: [
-      { name: "Pretoria", stopTime: 2 },
-      { name: "De Wildt", travelTime: 35 }
+     substations: [
+      { name: "Saulsville", stopTime: 2 },
+      { name: "Atteridgeville", travelTime: 5, stopTime: 2 },
+      { name: "Kalafong", travelTime: 5, stopTime: 2 },
+      { name: "Corona", travelTime: 5, stopTime: 2 },
+      { name: "Elandsfontein", travelTime: 5, stopTime: 2 },
+      { name: "Hercules", travelTime: 5, stopTime: 2 },
+      { name: "Pretoria-West", travelTime: 5, stopTime: 2 },
+      { name: "Pretoria", travelTime: 5 }
     ],
     price: "R7.20",
     originCoords: [-25.7548, 28.1868],
