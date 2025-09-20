@@ -418,34 +418,38 @@
 
 
 	<section id="notifications" class = "page hidden">
-	 <header>
-    <div class="container">
-      <div class="header-content">
-        <div class="logo">
-          <h1>🚆 Metrorail Notifications</h1>
-          <span class="status-badge status-operational" id="system-status">System Operational</span>
-        </div>
-        <div class="user-actions">
-          <button class="btn btn-primary" id="refresh-btn">Refresh</button>
-        </div>
-      </div>
-    </div>
-  </header>
-  
-  <main class="container">
-    <div class="notification-filters">
-      <button class="filter-btn active" data-filter="all">All Notifications</button>
-      <button class="filter-btn" data-filter="delay">Delays</button>
-      <button class="filter-btn" data-filter="cancellation">Cancellations</button>
-      <button class="filter-btn" data-filter="alert">Alerts</button>
-    </div>
-    
-    <div class="notifications-container" id="notifications-list">
-      <div class="loading">Loading notifications...</div>
-    </div>
-  </main>
 
-	</section>
+  <h1>Notifications</h1>
+
+  <div class="notification-filters">
+    <button class="filter-btn active" data-filter="all">All Notifications</button>
+    <button class="filter-btn" data-filter="delay">Delays</button>
+    <button class="filter-btn" data-filter="cancellation">Cancellations</button>
+    <button class="filter-btn" data-filter="alert">Alerts</button>
+  </div>
+
+  <div class="notifications-container" id="notifications-list">
+    <!-- For now, just some sample notifications -->
+    <div class="notification">
+      <h3>Service Delay</h3>
+      <p>The 07:30 Pretoria → Saulsville train will be delayed by 15 minutes.</p>
+      <small>Type: Delay</small>
+    </div>
+
+    <div class="notification">
+      <h3>Cancellation</h3>
+      <p>The 09:00 Saulsville → Pretoria train has been cancelled.</p>
+      <small>Type: Cancellation</small>
+    </div>
+
+    <div class="notification">
+      <h3>General Alert</h3>
+      <p>Please remember to wear a mask inside the train station.</p>
+      <small>Type: Alert</small>
+    </div>
+  </div>
+</section>
+
 
 	</section>
 
