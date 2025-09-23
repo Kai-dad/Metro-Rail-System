@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Management</title>
   <link rel="stylesheet" href="cascading stylesheet/User management.css">
-   <link rel="stylesheet" href="cascading stylesheet/styles.css"> 
-  
 </head>
 <body>
   <div class="container">
@@ -23,38 +21,38 @@
       </nav>
       <div class="logout">
         <p>👤 Administrator</p>
-        <button id="logout-btn">LOGOUT</button>
+        <button id="logout-btn">Logout</button>
       </div>
     </aside>
     
     <main class="user-management">
-      <h1>USER MANAGEMENT</h1>
+      <h1>User Management</h1>
 
       <div id="connection-status" class="connection-status">
-        🔄 CONNECTING TO FIREBASE...
+        Connecting to Firebase...
       </div>
       
       <section class="user-controls">
-        <input type="text" id="search-input" placeholder="SEARCH BY USERNAME OR EMAIL..." disabled />
-        <button id="refresh-btn">REFRESH ALL USERS</button>
+        <input type="text" id="search-input" placeholder="Search users..." />
+        <button id="refresh-btn">Refresh</button>
       </section>
 
       <div class="user-table-container">
         <table class="user-table">
           <thead>
             <tr>
-              <th>USER ID</th>
-              <th>EMAIL</th>
-              <th>DISPLAY NAME</th>
-              <th>ACCOUNT CREATED</th>
-              <th>LAST SIGN-IN</th>
-              <th>STATUS</th>
-              <th>ACTION</th>
+              <th>User ID</th>
+              <th>Email</th>
+              <th>Display Name</th>
+              <th>Created</th>
+              <th>Last Sign-In</th>
+              <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="users-table-body">
             <tr>
-              <td colspan="7" class="loading">LOADING ALL USERS...</td>
+              <td colspan="7">Loading users...</td>
             </tr>
           </tbody>
         </table>
