@@ -107,7 +107,7 @@ header {
 
 .user-table .delete {
   background-color: #dc3545;
-  color: white;
+  color: blue;
 }
 
 .user-table .delete:hover {
@@ -116,3 +116,4 @@ header {
 
 
   
+
