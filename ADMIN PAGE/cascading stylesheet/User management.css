@@ -33,6 +33,9 @@ header {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
+
+
+
 .user-controls button {
   padding: 10px 16px;
   background-color: #ffd700;
@@ -78,41 +81,19 @@ header {
   background-color: #fafafa;
 }
 
-/* Status badge styles - RESTORED ORIGINAL COLORS */
-.status-badge {
-  padding: 6px 12px;
-  border-radius: 4px;
+.active {
+  color: green;
   font-weight: bold;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-active {
-  background-color: #4CAF50; /* Green */
-  color: white;
-}
-
-.status-inactive {
-  background-color: #F44336; /* Red */
-  color: white;
-}
-
-.status-current {
-  background-color: #2196F3; /* Blue */
-  color: white;
 }
 
 .user-table .edit,
-.user-table .delete,
-.user-table .check-btn {
+.user-table .delete {
   border: none;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
   transition: background-color 0.3s ease;
-  margin: 2px;
 }
 
 .user-table .edit {
@@ -133,60 +114,8 @@ header {
   background-color: #bb2d3b;
 }
 
-.user-table .check-btn {
-  background-color: #6c757d;
-  color: white;
-}
 
-.user-table .check-btn:hover {
-  background-color: #5a6268;
-}
+  
 
-.loading, .error {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-}
 
-.error {
-  color: #dc3545;
-}
 
-.retry-btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.retry-btn:hover {
-  background-color: #0056b3;
-}
-
-.connection-status {
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  font-weight: bold;
-}
-
-.connection-status.connected {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #c8e6c9;
-}
-
-.connection-status.warning {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
-}
-
-.connection-status.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
