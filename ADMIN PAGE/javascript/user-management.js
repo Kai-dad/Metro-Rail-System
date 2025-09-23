@@ -52,11 +52,11 @@ function setupAuthStateListener() {
   auth.onAuthStateChanged((user) => {
     if (user) {
       currentUser = user;
-      showConnectionStatus('✅ Authenticated. Loading users...', 'connected');
+      showConnectionStatus('✅ AUTHENTICATED - LOADING USERS...', 'connected');
       fetchUsers();
     } else {
       // Not authenticated, redirect to login
-      showConnectionStatus('🔒 Authentication required. Redirecting to login...', 'warning');
+      showConnectionStatus('🔒 AUTHENTICATION REQUIRED - REDIRECTING TO LOGIN...', 'warning');
       setTimeout(() => {
         window.location.href = '../login.html';
       }, 2000);
@@ -75,12 +75,14 @@ auth.onAuthStateChanged(async (user) => {
         email: user.email,
         displayName: user.displayName || "",
         createdAt: new Date(),
-        lastSignInTime: new Date()
+        lastSignInTime: new Date(),
+        isOnline: true
       });
     } else {
-      // Update last login time
+      // Update last login time and set online status
       await userRef.update({
-        lastSignInTime: new Date()
+        lastSignInTime: new Date(),
+        isOnline: true
       });
     }
   }
@@ -90,7 +92,7 @@ auth.onAuthStateChanged(async (user) => {
 async function fetchUsers() {
   try {
     if (usersTableBody) {
-      usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading users...</td></tr>';
+      usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">LOADING USERS...</td></tr>';
     }
     
     const snapshot = await db.collection('users').get();
@@ -98,9 +100,9 @@ async function fetchUsers() {
     
     if (snapshot.empty) {
       if (usersTableBody) {
-        usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found in the database.</td></tr>';
+        usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">NO USERS FOUND IN DATABASE</td></tr>';
       }
-      showConnectionStatus('✅ Connected. No users found in database.', 'connected');
+      showConnectionStatus('✅ CONNECTED - NO USERS FOUND', 'connected');
       if (searchInput) searchInput.disabled = false;
       return;
     }
@@ -114,7 +116,7 @@ async function fetchUsers() {
     });
     
     renderUsers(users);
-    showConnectionStatus(`✅ Connected. Loaded ${users.length} users.`, 'connected');
+    showConnectionStatus(`✅ CONNECTED - LOADED ${users.length} USERS`, 'connected');
     if (searchInput) searchInput.disabled = false;
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -124,7 +126,7 @@ async function fetchUsers() {
         usersTableBody.innerHTML = `
           <tr>
             <td colspan="6" class="error">
-              🔐 Firebase Permission Error: Unable to load users due to security rules.
+              🔐 FIREBASE PERMISSION ERROR: UNABLE TO LOAD USERS DUE TO SECURITY RULES
               <br><br>
               Please add the following rules to your Firestore security rules:
               <pre>
@@ -137,13 +139,13 @@ match /users/{document} {
   allow write: if request.auth != null;
 }
               </pre>
-              <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+              <button class="retry-btn" onclick="fetchUsers()">RETRY CONNECTION</button>
             </td>
           </tr>
         `;
-        showConnectionStatus('❌ Permission denied. Please check Firebase Security Rules.', 'error');
+        showConnectionStatus('❌ PERMISSION DENIED - CHECK FIREBASE RULES', 'error');
       } else if (error.code === 'unauthenticated') {
-        showConnectionStatus('🔒 Authentication required. Please login again.', 'warning');
+        showConnectionStatus('🔒 AUTHENTICATION REQUIRED - PLEASE LOGIN AGAIN', 'warning');
         setTimeout(() => {
           if (auth) auth.signOut();
           window.location.href = '../login.html';
@@ -152,13 +154,13 @@ match /users/{document} {
         usersTableBody.innerHTML = `
           <tr>
             <td colspan="6" class="error">
-              Error loading users: ${error.message}
+              ERROR LOADING USERS: ${error.message}
               <br>
-              <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+              <button class="retry-btn" onclick="fetchUsers()">RETRY CONNECTION</button>
             </td>
           </tr>
         `;
-        showConnectionStatus('❌ Connection error: ' + error.message, 'error');
+        showConnectionStatus('❌ CONNECTION ERROR: ' + error.message, 'error');
       }
     }
     
@@ -166,8 +168,14 @@ match /users/{document} {
   }
 }
 
-// Function to check if user is active (signed in within last 30 days)
+// Function to check if user is active (logged in users are always active)
 function isUserActive(user) {
+  // If this is the currently logged-in user, they are definitely active
+  if (currentUser && user.id === currentUser.uid) {
+    return true;
+  }
+  
+  // For other users, check last sign-in time (within last 30 days)
   if (!user.lastSignInTime) return false;
   
   try {
@@ -186,7 +194,7 @@ function renderUsers(usersToRender) {
   if (!usersTableBody) return;
 
   if (usersToRender.length === 0) {
-    usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found.</td></tr>';
+    usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">NO USERS FOUND</td></tr>';
     return;
   }
 
@@ -199,37 +207,43 @@ function renderUsers(usersToRender) {
     if (user.createdAt) {
       try {
         const date = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
-        createdAt = date.toLocaleDateString();
+        createdAt = date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
       } catch (e) {
         console.error('Error formatting date:', e);
       }
     }
 
-    // Determine user status with colors
+    // Determine user status with DARK COLORS
     const isCurrentUser = currentUser && user.id === currentUser.uid;
     const isActive = isUserActive(user);
     
     let statusBadge = '';
     if (isCurrentUser) {
-      statusBadge = '<span class="status-badge status-current">Current User</span>';
+      statusBadge = '<span class="status-badge status-current">CURRENT USER</span>';
     } else if (isActive) {
-      statusBadge = '<span class="status-badge status-active">Active</span>';
+      statusBadge = '<span class="status-badge status-active">ACTIVE</span>';
     } else {
-      statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
+      statusBadge = '<span class="status-badge status-inactive">INACTIVE</span>';
     }
 
     const displayName = user.displayName || user.email || 'N/A';
     const email = user.email || 'N/A';
 
     row.innerHTML = `
-      <td class="user-id">${user.id.substring(0, 8)}...</td>
-      <td>${email}</td>
+      <td class="user-id">${user.id.substring(0, 10)}...</td>
+      <td><strong>${email}</strong></td>
       <td>${displayName}</td>
       <td>${createdAt}</td>
       <td>${statusBadge}</td>
       <td>
         <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
-          Check / Delete
+          CHECK / DELETE
         </button>
       </td>
     `;
@@ -268,7 +282,7 @@ async function checkAndDeleteUser(uid, email) {
     const userDoc = await db.collection('users').doc(uid).get();
 
     if (!userDoc.exists) {
-      alert(`User ${email} not found in the database.`);
+      alert(`USER ${email} NOT FOUND IN DATABASE`);
       return;
     }
 
@@ -276,30 +290,38 @@ async function checkAndDeleteUser(uid, email) {
     const isActive = isUserActive(userData);
 
     if (!isActive) {
-      const confirmDelete = confirm(`User ${email} appears inactive. Do you want to delete this user?`);
+      const confirmDelete = confirm(`USER ${email} IS INACTIVE. DELETE THIS USER?`);
       if (confirmDelete) {
         await db.collection('users').doc(uid).delete();
-        alert(`User ${email} has been deleted.`);
+        alert(`USER ${email} DELETED SUCCESSFULLY`);
         fetchUsers(); // refresh the table
       }
     } else {
-      alert(`User ${email} is active.`);
+      alert(`USER ${email} IS ACTIVE - CANNOT DELETE ACTIVE USERS`);
     }
   } catch (error) {
     console.error('Error checking/deleting user:', error);
-    alert('Error checking/deleting user: ' + error.message);
+    alert('ERROR: ' + error.message);
   }
 }
 
 // Function to handle logout
 function handleLogout() {
-  if (confirm('Are you sure you want to logout?')) {
+  if (confirm('CONFIRM LOGOUT?')) {
     if (auth) {
+      // Update user status to offline before signing out
+      if (currentUser) {
+        db.collection("users").doc(currentUser.uid).update({
+          isOnline: false,
+          lastSignOutTime: new Date()
+        });
+      }
+      
       auth.signOut().then(() => {
         window.location.href = '../login.html';
       }).catch((error) => {
         console.error('Error signing out:', error);
-        alert('Error signing out: ' + error.message);
+        alert('LOGOUT ERROR: ' + error.message);
       });
     } else {
       window.location.href = '../login.html';
@@ -312,7 +334,7 @@ function initApp() {
   // Get DOM elements safely
   if (!getDOMElements()) {
     console.error('Failed to initialize app: DOM elements not found');
-    showConnectionStatus('❌ Error initializing application', 'error');
+    showConnectionStatus('❌ ERROR INITIALIZING APPLICATION', 'error');
     return;
   }
   
@@ -331,3 +353,4 @@ document.addEventListener('DOMContentLoaded', initApp);
 // Export functions to global scope for retry button
 window.fetchUsers = fetchUsers;
 window.checkAndDeleteUser = checkAndDeleteUser;
+window.handleLogout = handleLogout;
