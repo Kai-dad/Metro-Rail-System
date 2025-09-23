@@ -28,7 +28,6 @@ function getDOMElements() {
   logoutBtn = document.getElementById('logout-btn');
   connectionStatus = document.getElementById('connection-status');
   
-  // Check if all elements exist
   if (!usersTableBody || !searchInput || !refreshBtn || !logoutBtn || !connectionStatus) {
     console.error('One or more DOM elements not found');
     return false;
@@ -42,20 +41,52 @@ function showConnectionStatus(message, type = 'info') {
   if (connectionStatus) {
     connectionStatus.textContent = message;
     connectionStatus.className = `connection-status ${type}`;
-  } else {
-    console.log(`Connection Status (${type}): ${message}`);
+  }
+}
+
+// Function to update user's last sign-in time
+async function updateUserSignInTime(user) {
+  try {
+    const userRef = db.collection("users").doc(user.uid);
+    const now = new Date();
+    
+    const userData = {
+      email: user.email,
+      displayName: user.displayName || user.email,
+      lastSignInTime: now,
+      updatedAt: now
+    };
+    
+    // Check if user document exists
+    const doc = await userRef.get();
+    if (!doc.exists) {
+      // Create new user with createdAt
+      userData.createdAt = now;
+      await userRef.set(userData);
+      console.log('New user created:', user.email);
+    } else {
+      // Update existing user
+      await userRef.update(userData);
+      console.log('User sign-in time updated:', user.email);
+    }
+  } catch (error) {
+    console.error('Error updating user sign-in time:', error);
   }
 }
 
 // Function to handle authentication state changes
 function setupAuthStateListener() {
-  auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
-      showConnectionStatus('✅ Authenticated. Loading users...', 'connected');
+      showConnectionStatus('✅ Authenticated. Updating sign-in time...', 'connected');
+      
+      // Update the user's sign-in time
+      await updateUserSignInTime(user);
+      
+      // Then fetch all users
       fetchUsers();
     } else {
-      // Not authenticated, redirect to login
       showConnectionStatus('🔒 Authentication required. Redirecting to login...', 'warning');
       setTimeout(() => {
         window.location.href = '../login.html';
@@ -64,49 +95,28 @@ function setupAuthStateListener() {
   });
 }
 
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    // Save user to Firestore if not already there
-    const userRef = db.collection("users").doc(user.uid);
-    const doc = await userRef.get();
-
-    if (!doc.exists) {
-      await userRef.set({
-        email: user.email,
-        displayName: user.displayName || "",
-        createdAt: new Date(),
-        lastSignInTime: new Date()
-      });
-    } else {
-      // Update last login time
-      await userRef.update({
-        lastSignInTime: new Date()
-      });
-    }
-  }
-});
-
 // Function to fetch users from Firebase
 async function fetchUsers() {
   try {
     if (usersTableBody) {
-      usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading users...</td></tr>';
+      usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading users...</td></tr>';
     }
     
+    console.log('Fetching users from Firestore...');
     const snapshot = await db.collection('users').get();
     users = [];
     
     if (snapshot.empty) {
       if (usersTableBody) {
-        usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found in the database.</td></tr>';
+        usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found in the database.</td></tr>';
       }
       showConnectionStatus('✅ Connected. No users found in database.', 'connected');
-      if (searchInput) searchInput.disabled = false;
       return;
     }
     
     snapshot.forEach(doc => {
       const userData = doc.data();
+      console.log('User data:', doc.id, userData.email, userData.lastSignInTime);
       users.push({
         id: doc.id,
         ...userData
@@ -115,68 +125,47 @@ async function fetchUsers() {
     
     renderUsers(users);
     showConnectionStatus(`✅ Connected. Loaded ${users.length} users.`, 'connected');
-    if (searchInput) searchInput.disabled = false;
+    
   } catch (error) {
     console.error('Error fetching users:', error);
     
     if (usersTableBody) {
-      if (error.code === 'permission-denied') {
-        usersTableBody.innerHTML = `
-          <tr>
-            <td colspan="5" class="error">
-              🔐 Firebase Permission Error: Unable to load users due to security rules.
-              <br><br>
-              Please add the following rules to your Firestore security rules:
-              <pre>
-match /users/{userId} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null && request.auth.uid == userId;
-}
-match /users/{document} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null;
-}
-              </pre>
-              <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
-            </td>
-          </tr>
-        `;
-        showConnectionStatus('❌ Permission denied. Please check Firebase Security Rules.', 'error');
-      } else if (error.code === 'unauthenticated') {
-        showConnectionStatus('🔒 Authentication required. Please login again.', 'warning');
-        setTimeout(() => {
-          if (auth) auth.signOut();
-          window.location.href = '../login.html';
-        }, 2000);
-      } else {
-        usersTableBody.innerHTML = `
-          <tr>
-            <td colspan="5" class="error">
-              Error loading users: ${error.message}
-              <br>
-              <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
-            </td>
-          </tr>
-        `;
-        showConnectionStatus('❌ Connection error: ' + error.message, 'error');
-      }
+      usersTableBody.innerHTML = `
+        <tr>
+          <td colspan="6" class="error">
+            Error loading users: ${error.message}
+            <br>
+            <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
+          </td>
+        </tr>
+      `;
     }
     
-    if (searchInput) searchInput.disabled = true;
+    showConnectionStatus('❌ Connection error: ' + error.message, 'error');
   }
 }
 
 // Function to check if user is active (signed in within last 30 days)
 function isUserActive(user) {
-  if (!user.lastSignInTime) return false;
+  console.log('Checking user activity:', user.email, user.lastSignInTime);
+  
+  if (!user.lastSignInTime) {
+    console.log('No lastSignInTime found for user:', user.email);
+    return false;
+  }
   
   try {
+    // Convert Firestore timestamp to Date object
     const lastSignIn = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
     const now = new Date();
-    const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
+    const diffTime = now - lastSignIn;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    console.log(`User ${user.email}: lastSignIn=${lastSignIn}, diffDays=${diffDays}, active=${diffDays <= 30}`);
+    
     return diffDays <= 30;
   } catch (e) {
-    console.error('Error checking user activity:', e);
+    console.error('Error checking user activity:', e, user);
     return false;
   }
 }
@@ -195,6 +184,7 @@ function renderUsers(usersToRender) {
   usersToRender.forEach(user => {
     const row = document.createElement('tr');
 
+    // Format dates
     let createdAt = 'N/A';
     if (user.createdAt) {
       try {
@@ -205,7 +195,17 @@ function renderUsers(usersToRender) {
       }
     }
 
-    // Determine user status with colors
+    let lastSignIn = 'Never';
+    if (user.lastSignInTime) {
+      try {
+        const date = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
+        lastSignIn = date.toLocaleString();
+      } catch (e) {
+        console.error('Error formatting last sign-in:', e);
+      }
+    }
+
+    // Determine user status
     const isCurrentUser = currentUser && user.id === currentUser.uid;
     const isActive = isUserActive(user);
     
@@ -226,6 +226,7 @@ function renderUsers(usersToRender) {
       <td>${email}</td>
       <td>${displayName}</td>
       <td>${createdAt}</td>
+      <td>${lastSignIn}</td>
       <td>${statusBadge}</td>
       <td>
         <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
@@ -264,7 +265,6 @@ function searchUsers() {
 
 async function checkAndDeleteUser(uid, email) {
   try {
-    // Fetch user metadata
     const userDoc = await db.collection('users').doc(uid).get();
 
     if (!userDoc.exists) {
@@ -280,7 +280,7 @@ async function checkAndDeleteUser(uid, email) {
       if (confirmDelete) {
         await db.collection('users').doc(uid).delete();
         alert(`User ${email} has been deleted.`);
-        fetchUsers(); // refresh the table
+        fetchUsers();
       }
     } else {
       alert(`User ${email} is active.`);
@@ -294,40 +294,31 @@ async function checkAndDeleteUser(uid, email) {
 // Function to handle logout
 function handleLogout() {
   if (confirm('Are you sure you want to logout?')) {
-    if (auth) {
-      auth.signOut().then(() => {
-        window.location.href = '../login.html';
-      }).catch((error) => {
-        console.error('Error signing out:', error);
-        alert('Error signing out: ' + error.message);
-      });
-    } else {
+    auth.signOut().then(() => {
       window.location.href = '../login.html';
-    }
+    }).catch((error) => {
+      console.error('Error signing out:', error);
+      alert('Error signing out: ' + error.message);
+    });
   }
 }
 
 // Initialize the application
 function initApp() {
-  // Get DOM elements safely
   if (!getDOMElements()) {
-    console.error('Failed to initialize app: DOM elements not found');
     showConnectionStatus('❌ Error initializing application', 'error');
     return;
   }
   
-  // Event listeners
   searchInput.addEventListener('input', searchUsers);
   refreshBtn.addEventListener('click', fetchUsers);
   logoutBtn.addEventListener('click', handleLogout);
   
-  // Set up auth state listener
   setupAuthStateListener();
 }
 
 // Start the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
 
-// Export functions to global scope for retry button
 window.fetchUsers = fetchUsers;
 window.checkAndDeleteUser = checkAndDeleteUser;
