@@ -113,13 +113,25 @@ header {
 .user-table .delete:hover {
   background-color: #bb2d3b;
 }
-.status {
-  color: blue;
+
+.active {
+  color: green;
   font-weight: bold;
+}
+
+.current-user {
+  color: darkblue;
+  font-weight: bold;
+}
+
+.inactive {
+  color: red;
+  font-style: italic;
 }
 
 
   
+
 
 
 
