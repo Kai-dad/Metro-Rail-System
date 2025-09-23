@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>User Management</title>
   <link rel="stylesheet" href="cascading stylesheet/User management.css">
-   <link rel="stylesheet" href="cascading stylesheet/styles.css"> 
-  
 </head>
 <body>
   <div class="container">
@@ -35,7 +33,7 @@
       </div>
       
       <section class="user-controls">
-        <input type="text" id="search-input" placeholder="Search by username or email..." disabled />
+        <input type="text" id="search-input" placeholder="Search by username or email..." />
         <button id="refresh-btn">Refresh Users</button>
       </section>
 
@@ -47,13 +45,14 @@
               <th>Email</th>
               <th>Display Name</th>
               <th>Account Created</th>
+              <th>Last Sign-In</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody id="users-table-body">
             <tr>
-              <td colspan="6" class="loading">Loading users...</td>
+              <td colspan="7" class="loading">Loading users...</td>
             </tr>
           </tbody>
         </table>
