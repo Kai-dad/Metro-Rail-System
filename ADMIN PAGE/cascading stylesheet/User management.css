@@ -33,9 +33,6 @@ header {
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-
-
-
 .user-controls button {
   padding: 10px 16px;
   background-color: #ffd700;
@@ -81,11 +78,6 @@ header {
   background-color: #fafafa;
 }
 
-.active {
-  color: green;
-  font-weight: bold;
-}
-
 .user-table .edit,
 .user-table .delete {
   border: none;
@@ -114,24 +106,31 @@ header {
   background-color: #bb2d3b;
 }
 
-.active {
-  color: green;
+/* =========================
+   User Status Styles
+   ========================= */
+.user-table td.status {
   font-weight: bold;
+  text-align: center;
 }
 
-.current-user {
+/* Active user = Blue */
+.user-table td.active {
+  color: blue;
+}
+
+/* Current user = Dark blue */
+.user-table td.current-user {
   color: darkblue;
-  font-weight: bold;
 }
 
-.inactive {
-  color: red;
+/* Inactive user = Gray */
+.user-table td.inactive {
+  color: gray;
   font-style: italic;
 }
 
-
-  
-
-
-
-
+/* Suspended user = Red */
+.user-table td.suspended {
+  color: red;
+}
