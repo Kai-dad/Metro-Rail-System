@@ -83,12 +83,12 @@ function setupAuthStateListener() {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
-      showConnectionStatus('✅ AUTHENTICATED - UPDATING USER STATUS...', 'connected');
+      showConnectionStatus('✅ AUTHENTICATED - LOADING ALL USERS...', 'connected');
       
-      // Update the user's last sign-in time immediately
+      // Update the current user's last sign-in time
       await updateUserLastSignIn(user);
       
-      // Then fetch all users
+      // Then fetch ALL users (not just current user)
       fetchUsers();
     } else {
       // Not authenticated, redirect to login
@@ -100,19 +100,21 @@ function setupAuthStateListener() {
   });
 }
 
-// Function to fetch users from Firebase
+// Function to fetch ALL users from Firebase
 async function fetchUsers() {
   try {
     if (usersTableBody) {
-      usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">LOADING USERS...</td></tr>';
+      usersTableBody.innerHTML = '<tr><td colspan="7" class="loading">LOADING ALL USERS...</td></tr>';
     }
     
-    const snapshot = await db.collection('users').orderBy('lastSignInTime', 'desc').get();
+    console.log('Fetching ALL users from Firestore...');
+    
+    const snapshot = await db.collection('users').get();
     users = [];
     
     if (snapshot.empty) {
       if (usersTableBody) {
-        usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">NO USERS FOUND IN DATABASE</td></tr>';
+        usersTableBody.innerHTML = '<tr><td colspan="7" class="loading">NO USERS FOUND IN DATABASE</td></tr>';
       }
       showConnectionStatus('✅ CONNECTED - NO USERS FOUND', 'connected');
       if (searchInput) searchInput.disabled = false;
@@ -127,6 +129,8 @@ async function fetchUsers() {
       });
     });
     
+    console.log(`Loaded ${users.length} users:`, users);
+    
     renderUsers(users);
     showConnectionStatus(`✅ CONNECTED - LOADED ${users.length} USERS`, 'connected');
     if (searchInput) searchInput.disabled = false;
@@ -137,20 +141,10 @@ async function fetchUsers() {
       if (error.code === 'permission-denied') {
         usersTableBody.innerHTML = `
           <tr>
-            <td colspan="6" class="error">
+            <td colspan="7" class="error">
               🔐 FIREBASE PERMISSION ERROR: UNABLE TO LOAD USERS DUE TO SECURITY RULES
               <br><br>
-              Please add the following rules to your Firestore security rules:
-              <pre>
-match /users/{userId} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null && request.auth.uid == userId;
-}
-match /users/{document} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null;
-}
-              </pre>
+              Please check your Firestore security rules to allow reading from the 'users' collection.
               <button class="retry-btn" onclick="fetchUsers()">RETRY CONNECTION</button>
             </td>
           </tr>
@@ -165,7 +159,7 @@ match /users/{document} {
       } else {
         usersTableBody.innerHTML = `
           <tr>
-            <td colspan="6" class="error">
+            <td colspan="7" class="error">
               ERROR LOADING USERS: ${error.message}
               <br>
               <button class="retry-btn" onclick="fetchUsers()">RETRY CONNECTION</button>
@@ -225,7 +219,7 @@ function renderUsers(usersToRender) {
   if (!usersTableBody) return;
 
   if (usersToRender.length === 0) {
-    usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">NO USERS FOUND</td></tr>';
+    usersTableBody.innerHTML = '<tr><td colspan="7" class="loading">NO USERS FOUND</td></tr>';
     return;
   }
 
