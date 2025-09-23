@@ -47,12 +47,48 @@ function showConnectionStatus(message, type = 'info') {
   }
 }
 
+// Function to update user's last sign-in time in Firestore
+async function updateUserLastSignIn(user) {
+  try {
+    const userRef = db.collection("users").doc(user.uid);
+    const doc = await userRef.get();
+
+    const now = new Date();
+    
+    if (!doc.exists) {
+      // Create new user document if it doesn't exist
+      await userRef.set({
+        email: user.email,
+        displayName: user.displayName || user.email,
+        createdAt: now,
+        lastSignInTime: now,
+        isOnline: true
+      });
+      console.log('New user document created for:', user.email);
+    } else {
+      // Update existing user document with new sign-in time
+      await userRef.update({
+        lastSignInTime: now,
+        isOnline: true
+      });
+      console.log('User sign-in time updated for:', user.email);
+    }
+  } catch (error) {
+    console.error('Error updating user sign-in time:', error);
+  }
+}
+
 // Function to handle authentication state changes
 function setupAuthStateListener() {
-  auth.onAuthStateChanged((user) => {
+  auth.onAuthStateChanged(async (user) => {
     if (user) {
       currentUser = user;
-      showConnectionStatus('✅ AUTHENTICATED - LOADING USERS...', 'connected');
+      showConnectionStatus('✅ AUTHENTICATED - UPDATING USER STATUS...', 'connected');
+      
+      // Update the user's last sign-in time immediately
+      await updateUserLastSignIn(user);
+      
+      // Then fetch all users
       fetchUsers();
     } else {
       // Not authenticated, redirect to login
@@ -64,30 +100,6 @@ function setupAuthStateListener() {
   });
 }
 
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    // Save user to Firestore if not already there
-    const userRef = db.collection("users").doc(user.uid);
-    const doc = await userRef.get();
-
-    if (!doc.exists) {
-      await userRef.set({
-        email: user.email,
-        displayName: user.displayName || "",
-        createdAt: new Date(),
-        lastSignInTime: new Date(),
-        isOnline: true
-      });
-    } else {
-      // Update last login time and set online status
-      await userRef.update({
-        lastSignInTime: new Date(),
-        isOnline: true
-      });
-    }
-  }
-});
-
 // Function to fetch users from Firebase
 async function fetchUsers() {
   try {
@@ -95,7 +107,7 @@ async function fetchUsers() {
       usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">LOADING USERS...</td></tr>';
     }
     
-    const snapshot = await db.collection('users').get();
+    const snapshot = await db.collection('users').orderBy('lastSignInTime', 'desc').get();
     users = [];
     
     if (snapshot.empty) {
@@ -168,7 +180,7 @@ match /users/{document} {
   }
 }
 
-// Function to check if user is active (logged in users are always active)
+// Function to check if user is active
 function isUserActive(user) {
   // If this is the currently logged-in user, they are definitely active
   if (currentUser && user.id === currentUser.uid) {
@@ -176,16 +188,35 @@ function isUserActive(user) {
   }
   
   // For other users, check last sign-in time (within last 30 days)
-  if (!user.lastSignInTime) return false;
+  if (!user.lastSignInTime) {
+    return false;
+  }
   
   try {
     const lastSignIn = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
     const now = new Date();
     const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-    return diffDays <= 30;
+    const isActive = diffDays <= 30;
+    
+    console.log(`User ${user.email}: lastSignIn=${lastSignIn}, diffDays=${diffDays}, active=${isActive}`);
+    return isActive;
   } catch (e) {
-    console.error('Error checking user activity:', e);
+    console.error('Error checking user activity:', e, user);
     return false;
+  }
+}
+
+// Function to get user status text and type
+function getUserStatus(user) {
+  const isCurrentUser = currentUser && user.id === currentUser.uid;
+  const isActive = isUserActive(user);
+  
+  if (isCurrentUser) {
+    return { text: 'CURRENT USER', type: 'current' };
+  } else if (isActive) {
+    return { text: 'ACTIVE', type: 'active' };
+  } else {
+    return { text: 'INACTIVE', type: 'inactive' };
   }
 }
 
@@ -210,27 +241,31 @@ function renderUsers(usersToRender) {
         createdAt = date.toLocaleDateString('en-US', { 
           year: 'numeric', 
           month: 'short', 
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
+          day: 'numeric'
         });
       } catch (e) {
         console.error('Error formatting date:', e);
       }
     }
 
-    // Determine user status with DARK COLORS
-    const isCurrentUser = currentUser && user.id === currentUser.uid;
-    const isActive = isUserActive(user);
-    
-    let statusBadge = '';
-    if (isCurrentUser) {
-      statusBadge = '<span class="status-badge status-current">CURRENT USER</span>';
-    } else if (isActive) {
-      statusBadge = '<span class="status-badge status-active">ACTIVE</span>';
-    } else {
-      statusBadge = '<span class="status-badge status-inactive">INACTIVE</span>';
+    let lastSignIn = 'Never';
+    if (user.lastSignInTime) {
+      try {
+        const date = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
+        lastSignIn = date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        console.error('Error formatting last sign-in date:', e);
+      }
     }
+
+    const status = getUserStatus(user);
+    const statusBadge = `<span class="status-badge status-${status.type}">${status.text}</span>`;
 
     const displayName = user.displayName || user.email || 'N/A';
     const email = user.email || 'N/A';
@@ -240,6 +275,7 @@ function renderUsers(usersToRender) {
       <td><strong>${email}</strong></td>
       <td>${displayName}</td>
       <td>${createdAt}</td>
+      <td>${lastSignIn}</td>
       <td>${statusBadge}</td>
       <td>
         <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
@@ -278,6 +314,12 @@ function searchUsers() {
 
 async function checkAndDeleteUser(uid, email) {
   try {
+    // Prevent deleting current user
+    if (currentUser && uid === currentUser.uid) {
+      alert('CANNOT DELETE YOUR OWN ACCOUNT WHILE LOGGED IN');
+      return;
+    }
+
     // Fetch user metadata
     const userDoc = await db.collection('users').doc(uid).get();
 
@@ -314,6 +356,8 @@ function handleLogout() {
         db.collection("users").doc(currentUser.uid).update({
           isOnline: false,
           lastSignOutTime: new Date()
+        }).catch(error => {
+          console.error('Error updating logout status:', error);
         });
       }
       
