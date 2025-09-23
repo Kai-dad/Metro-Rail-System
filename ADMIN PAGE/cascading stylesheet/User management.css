@@ -221,7 +221,7 @@ header {
 }
 
 /* Make the status column content stand out more */
-.user-table td:nth-child(5) {
+.user-table td:nth-child(6) { /* Status column is now 6th */
   text-align: center;
   font-weight: 800;
   padding: 15px;
@@ -257,3 +257,4 @@ header {
   letter-spacing: 1px;
   border-bottom: 3px solid #34495e;
 }
+
