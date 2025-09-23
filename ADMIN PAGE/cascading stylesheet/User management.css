@@ -107,29 +107,37 @@ header {
 }
 
 /* =========================
-   Force Status Visibility
+   Status Badges
    ========================= */
 .user-table td.status {
-  font-weight: bold;
   text-align: center;
-  color: #000 !important;   /* Black by default */
 }
 
-/* Specific states */
-.user-table td.active {
-  color: blue !important;
+.user-table td.status span {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #fff;
 }
 
-.user-table td.current-user {
-  color: darkblue !important;
+/* Active user = Blue badge */
+.user-table td.active span {
+  background-color: #007bff;
 }
 
-.user-table td.inactive {
-  color: gray !important;
-  font-style: italic;
+/* Current user = Dark blue badge */
+.user-table td.current-user span {
+  background-color: #0056b3;
 }
 
-.user-table td.suspended {
-  color: red !important;
+/* Inactive user = Gray badge */
+.user-table td.inactive span {
+  background-color: #6c757d;
 }
 
+/* Suspended user = Red badge */
+.user-table td.suspended span {
+  background-color: #dc3545;
+}
