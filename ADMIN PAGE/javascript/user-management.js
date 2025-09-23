@@ -3,12 +3,10 @@ const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
   projectId: "metro-rail-2de9c",
- // storageBucket: "metro-rail-2de9c.firebasestorage.app",
   storageBucket: "metro-rail-2de9c.appspot.com",
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
-
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -92,7 +90,7 @@ auth.onAuthStateChanged(async (user) => {
 async function fetchUsers() {
   try {
     if (usersTableBody) {
-      usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">Loading users...</td></tr>';
+      usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading users...</td></tr>';
     }
     
     const snapshot = await db.collection('users').get();
@@ -100,7 +98,7 @@ async function fetchUsers() {
     
     if (snapshot.empty) {
       if (usersTableBody) {
-        usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found in the database.</td></tr>';
+        usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found in the database.</td></tr>';
       }
       showConnectionStatus('✅ Connected. No users found in database.', 'connected');
       if (searchInput) searchInput.disabled = false;
@@ -125,7 +123,7 @@ async function fetchUsers() {
       if (error.code === 'permission-denied') {
         usersTableBody.innerHTML = `
           <tr>
-            <td colspan="5" class="error">
+            <td colspan="6" class="error">
               🔐 Firebase Permission Error: Unable to load users due to security rules.
               <br><br>
               Please add the following rules to your Firestore security rules:
@@ -153,7 +151,7 @@ match /users/{document} {
       } else {
         usersTableBody.innerHTML = `
           <tr>
-            <td colspan="5" class="error">
+            <td colspan="6" class="error">
               Error loading users: ${error.message}
               <br>
               <button class="retry-btn" onclick="fetchUsers()">Retry Connection</button>
@@ -168,21 +166,35 @@ match /users/{document} {
   }
 }
 
-// Function to render users in the table
-/*function renderUsers(usersToRender) {
-  if (!usersTableBody) return;
+// Function to check if user is active (signed in within last 30 days)
+function isUserActive(user) {
+  if (!user.lastSignInTime) return false;
   
+  try {
+    const lastSignIn = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
+    const now = new Date();
+    const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
+    return diffDays <= 30;
+  } catch (e) {
+    console.error('Error checking user activity:', e);
+    return false;
+  }
+}
+
+// Function to render users in the table
+function renderUsers(usersToRender) {
+  if (!usersTableBody) return;
+
   if (usersToRender.length === 0) {
-    usersTableBody.innerHTML = '<tr><td colspan="5" class="loading">No users found.</td></tr>';
+    usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found.</td></tr>';
     return;
   }
-  
+
   usersTableBody.innerHTML = '';
-  
+
   usersToRender.forEach(user => {
     const row = document.createElement('tr');
-    
-    // Format the date if available
+
     let createdAt = 'N/A';
     if (user.createdAt) {
       try {
@@ -191,35 +203,40 @@ match /users/{document} {
       } catch (e) {
         console.error('Error formatting date:', e);
       }
-    } else if (user.metadata && user.metadata.creationTime) {
-      try {
-        createdAt = new Date(user.metadata.creationTime).toLocaleDateString();
-      } catch (e) {
-        console.error('Error formatting metadata date:', e);
-      }
     }
-    
-    // Determine user status
+
+    // Determine user status with colors
     const isCurrentUser = currentUser && user.id === currentUser.uid;
-    const statusBadge = isCurrentUser ? 
-      '<span class="status-badge status-active">Current User</span>' : 
-      '<span class="status-badge status-active">Active</span>';
+    const isActive = isUserActive(user);
     
-    // Use displayName if available, otherwise fall back to email
+    let statusBadge = '';
+    if (isCurrentUser) {
+      statusBadge = '<span class="status-badge status-current">Current User</span>';
+    } else if (isActive) {
+      statusBadge = '<span class="status-badge status-active">Active</span>';
+    } else {
+      statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
+    }
+
     const displayName = user.displayName || user.email || 'N/A';
     const email = user.email || 'N/A';
-    
+
     row.innerHTML = `
       <td class="user-id">${user.id.substring(0, 8)}...</td>
       <td>${email}</td>
       <td>${displayName}</td>
       <td>${createdAt}</td>
       <td>${statusBadge}</td>
+      <td>
+        <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
+          Check / Delete
+        </button>
+      </td>
     `;
-    
+
     usersTableBody.appendChild(row);
   });
-}*/
+}
 
 // Function to search users
 function searchUsers() {
@@ -245,6 +262,35 @@ function searchUsers() {
   renderUsers(filteredUsers);
 }
 
+async function checkAndDeleteUser(uid, email) {
+  try {
+    // Fetch user metadata
+    const userDoc = await db.collection('users').doc(uid).get();
+
+    if (!userDoc.exists) {
+      alert(`User ${email} not found in the database.`);
+      return;
+    }
+
+    const userData = userDoc.data();
+    const isActive = isUserActive(userData);
+
+    if (!isActive) {
+      const confirmDelete = confirm(`User ${email} appears inactive. Do you want to delete this user?`);
+      if (confirmDelete) {
+        await db.collection('users').doc(uid).delete();
+        alert(`User ${email} has been deleted.`);
+        fetchUsers(); // refresh the table
+      }
+    } else {
+      alert(`User ${email} is active.`);
+    }
+  } catch (error) {
+    console.error('Error checking/deleting user:', error);
+    alert('Error checking/deleting user: ' + error.message);
+  }
+}
+
 // Function to handle logout
 function handleLogout() {
   if (confirm('Are you sure you want to logout?')) {
@@ -258,94 +304,6 @@ function handleLogout() {
     } else {
       window.location.href = '../login.html';
     }
-  }
-}
-function renderUsers(usersToRender) {
-  if (!usersTableBody) return;
-
-  if (usersToRender.length === 0) {
-    usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">No users found.</td></tr>';
-    return;
-  }
-
-  usersTableBody.innerHTML = '';
-
-  usersToRender.forEach(user => {
-    const row = document.createElement('tr');
-
-    let createdAt = 'N/A';
-    if (user.createdAt) {
-      try {
-        const date = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
-        createdAt = date.toLocaleDateString();
-      } catch (e) {
-        console.error('Error formatting date:', e);
-      }
-    }
-
-    const isCurrentUser = currentUser && user.id === currentUser.uid;
-    const statusBadge = isCurrentUser ? 
-      '<span class="status-badge status-active">Current User</span>' : 
-      '<span class="status-badge status-active">Active</span>';
-
-    const displayName = user.displayName || user.email || 'N/A';
-    const email = user.email || 'N/A';
-
-    row.innerHTML = `
-      <td class="user-id">${user.id.substring(0, 8)}...</td>
-      <td>${email}</td>
-      <td>${displayName}</td>
-      <td>${createdAt}</td>
-      <td>${statusBadge}</td>
-      <td>
-        <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
-          Check / Delete
-        </button>
-      </td>
-    `;
-
-    usersTableBody.appendChild(row);
-  });
-}
-
-async function checkAndDeleteUser(uid, email) {
-  try {
-    // Fetch user metadata
-    const userDoc = await db.collection('users').doc(uid).get();
-
-    if (!userDoc.exists) {
-      alert(`User ${email} not found in the database.`);
-      return;
-    }
-
-    const userData = userDoc.data();
-    const lastSignIn = userData.lastSignInTime ? new Date(userData.lastSignInTime) : null;
-
-    const now = new Date();
-    let inactive = false;
-
-    if (lastSignIn) {
-      const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 30) { // consider inactive if no sign in for 30+ days
-        inactive = true;
-      }
-    } else {
-      inactive = true; // no lastSignIn info = inactive
-    }
-
-    if (inactive) {
-      const confirmDelete = confirm(`User ${email} appears inactive. Do you want to delete this user?`);
-      if (confirmDelete) {
-        await db.collection('users').doc(uid).delete();
-        alert(`User ${email} has been deleted.`);
-        fetchUsers(); // refresh the table
-      }
-    } else {
-      alert(`User ${email} is active.`);
-    }
-  } catch (error) {
-    console.error('Error checking/deleting user:', error);
-    alert('Error checking/deleting user: ' + error.message);
   }
 }
 
@@ -372,7 +330,4 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 // Export functions to global scope for retry button
 window.fetchUsers = fetchUsers;
-
-
-        
-  
+window.checkAndDeleteUser = checkAndDeleteUser;
