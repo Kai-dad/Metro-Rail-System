@@ -78,118 +78,157 @@ header {
   background-color: #fafafa;
 }
 
-/* Status badge styles */
+/* Enhanced Status badge styles - BOLD and HIGHLY VISIBLE */
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 900; /* Extra bold */
+  font-size: 0.9rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  border: 2px solid;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: inline-block;
+  min-width: 100px;
+  text-align: center;
 }
 
 .status-active {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #c8e6c9;
+  background-color: #4CAF50; /* Strong green */
+  color: white;
+  border-color: #388E3C; /* Darker green border */
 }
 
 .status-inactive {
-  background-color: #ffebee;
-  color: #c62828;
-  border: 1px solid #ffcdd2;
+  background-color: #F44336; /* Strong red */
+  color: white;
+  border-color: #D32F2F; /* Darker red border */
 }
 
 .status-current {
-  background-color: #e3f2fd;
-  color: #1565c0;
-  border: 1px solid #bbdefb;
+  background-color: #2196F3; /* Strong blue */
+  color: white;
+  border-color: #1976D2; /* Darker blue border */
 }
 
 .user-table .edit,
 .user-table .delete,
 .user-table .check-btn {
   border: none;
-  padding: 6px 12px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
   margin: 2px;
+  font-weight: 700;
 }
 
 .user-table .edit {
   background-color: #ffd700;
   color: #222;
+  border: 2px solid #e6c200;
 }
 
 .user-table .edit:hover {
   background-color: #e6c200;
+  border-color: #ccaa00;
 }
 
 .user-table .delete {
   background-color: #dc3545;
   color: white;
+  border: 2px solid #bb2d3b;
 }
 
 .user-table .delete:hover {
   background-color: #bb2d3b;
+  border-color: #9a2530;
 }
 
 .user-table .check-btn {
   background-color: #6c757d;
   color: white;
+  border: 2px solid #5a6268;
+  font-weight: 700;
 }
 
 .user-table .check-btn:hover {
   background-color: #5a6268;
+  border-color: #495057;
 }
 
 .loading, .error {
   text-align: center;
   padding: 20px;
   color: #666;
+  font-weight: 600;
 }
 
 .error {
   color: #dc3545;
+  background-color: #f8d7da;
+  border: 2px solid #f5c6cb;
+  border-radius: 6px;
 }
 
 .retry-btn {
   background-color: #007bff;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  border: 2px solid #0056b3;
+  padding: 10px 20px;
+  border-radius: 6px;
   cursor: pointer;
   margin-top: 10px;
+  font-weight: 700;
+  transition: all 0.3s ease;
 }
 
 .retry-btn:hover {
   background-color: #0056b3;
+  border-color: #004085;
 }
 
 .connection-status {
-  padding: 10px;
-  border-radius: 4px;
+  padding: 12px;
+  border-radius: 6px;
   margin-bottom: 15px;
-  font-weight: bold;
+  font-weight: 700;
+  border: 2px solid;
+  font-size: 1rem;
 }
 
 .connection-status.connected {
-  background-color: #e8f5e9;
-  color: #2e7d32;
-  border: 1px solid #c8e6c9;
+  background-color: #4CAF50;
+  color: white;
+  border-color: #388E3C;
 }
 
 .connection-status.warning {
-  background-color: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
+  background-color: #FF9800;
+  color: white;
+  border-color: #F57C00;
 }
 
 .connection-status.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  background-color: #F44336;
+  color: white;
+  border-color: #D32F2F;
+}
+
+/* Make the status column content stand out more */
+.user-table td:nth-child(5) {
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Ensure the status badges are prominently displayed */
+.user-table .status-badge {
+  transition: all 0.3s ease;
+}
+
+.user-table .status-badge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
