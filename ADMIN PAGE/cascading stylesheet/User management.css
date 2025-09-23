@@ -109,11 +109,7 @@ header {
 /* =========================
    Status Badges
    ========================= */
-.user-table td.status {
-  text-align: center;
-}
-
-.user-table td.status span {
+.status-badge {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 12px;
@@ -122,22 +118,23 @@ header {
   color: #fff;
 }
 
-/* Active user = Blue badge */
-.user-table td.active span {
+/* Active = Blue */
+.status-badge.status-active {
   background-color: #007bff;
 }
 
-/* Current user = Dark blue badge */
-.user-table td.current-user span {
+/* Current User = Dark Blue */
+.status-badge.status-current {
   background-color: #0056b3;
 }
 
-/* Inactive user = Gray badge */
-.user-table td.inactive span {
+/* Inactive = Gray */
+.status-badge.status-inactive {
   background-color: #6c757d;
 }
 
-/* Suspended user = Red badge */
-.user-table td.suspended span {
+/* Suspended = Red */
+.status-badge.status-suspended {
   background-color: #dc3545;
 }
+
