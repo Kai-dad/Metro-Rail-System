@@ -6,152 +6,140 @@ body {
   color: #333;
 }
 
-.container {
-  display: flex;
-  min-height: 100vh;
-}
-
-.sidebar {
-  width: 250px;
-  background: #2c3e50;
-  color: white;
-  padding: 20px;
-}
-
-.sidebar .brand {
-  font-size: 1.5rem;
+header {
+  background-color: #ffd700;
+  color: #222;
+  padding: 20px 30px;
+  text-align: center;
+  font-size: 1.6rem;
   font-weight: bold;
-  margin-bottom: 20px;
-}
-
-.sidebar nav a {
-  display: block;
-  color: white;
-  padding: 10px;
-  text-decoration: none;
-  margin: 5px 0;
-}
-
-.sidebar nav a.active {
-  background: #34495e;
-  border-radius: 5px;
-}
-
-.sidebar nav a:hover {
-  background: #34495e;
-}
-
-.user-management {
-  flex: 1;
-  padding: 20px;
+  border-bottom: 4px solid #888;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .user-controls {
   display: flex;
-  gap: 15px;
-  margin: 20px 0;
+  justify-content: space-between;
+  margin: 30px 0 20px;
+  padding: 0 10px;
 }
 
 .user-controls input {
-  flex: 1;
   padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .user-controls button {
-  padding: 10px 20px;
-  background: #007bff;
-  color: white;
+  padding: 10px 16px;
+  background-color: #ffd700;
+  color: #222;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
+  font-weight: bold;
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+.user-controls button:hover {
+  background-color: #e6c200;
 }
 
 .user-table {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.user-table table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .user-table th,
 .user-table td {
+  border: 1px solid #ddd;
   padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #eee;
 }
 
 .user-table th {
-  background: #f8f9fa;
+  background-color: #f2f2f2;
+  color: #333;
   font-weight: 600;
 }
 
-.user-table tr:hover {
-  background: #f8f9fa;
+.user-table tr:nth-child(even) {
+  background-color: #fafafa;
 }
 
-/* Status badges */
+/* Status badge styles - RESTORED ORIGINAL COLORS */
 .status-badge {
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: 4px;
   font-weight: bold;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .status-active {
-  background: #28a745;
+  background-color: #4CAF50; /* Green */
   color: white;
 }
 
 .status-inactive {
-  background: #dc3545;
+  background-color: #F44336; /* Red */
   color: white;
 }
 
 .status-current {
-  background: #007bff;
+  background-color: #2196F3; /* Blue */
   color: white;
 }
 
-.check-btn {
-  padding: 6px 12px;
-  background: #6c757d;
-  color: white;
+.user-table .edit,
+.user-table .delete,
+.user-table .check-btn {
   border: none;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  margin: 2px;
 }
 
-.check-btn:hover {
-  background: #545b62;
+.user-table .edit {
+  background-color: #ffd700;
+  color: #222;
 }
 
-.connection-status {
-  padding: 10px;
-  border-radius: 5px;
-  margin: 10px 0;
+.user-table .edit:hover {
+  background-color: #e6c200;
 }
 
-.connection-status.connected {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
+.user-table .delete {
+  background-color: #dc3545;
+  color: white;
 }
 
-.connection-status.warning {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeaa7;
+.user-table .delete:hover {
+  background-color: #bb2d3b;
 }
 
-.connection-status.error {
-  background: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+.user-table .check-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.user-table .check-btn:hover {
+  background-color: #5a6268;
 }
 
 .loading, .error {
@@ -160,12 +148,45 @@ body {
   color: #666;
 }
 
+.error {
+  color: #dc3545;
+}
+
 .retry-btn {
-  padding: 8px 16px;
-  background: #007bff;
+  background-color: #007bff;
   color: white;
   border: none;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
   margin-top: 10px;
+}
+
+.retry-btn:hover {
+  background-color: #0056b3;
+}
+
+.connection-status {
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.connection-status.connected {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.connection-status.warning {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.connection-status.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
