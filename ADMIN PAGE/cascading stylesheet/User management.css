@@ -6,255 +6,166 @@ body {
   color: #333;
 }
 
-header {
-  background-color: #ffd700;
-  color: #222;
-  padding: 20px 30px;
-  text-align: center;
-  font-size: 1.6rem;
+.container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background: #2c3e50;
+  color: white;
+  padding: 20px;
+}
+
+.sidebar .brand {
+  font-size: 1.5rem;
   font-weight: bold;
-  border-bottom: 4px solid #888;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.sidebar nav a {
+  display: block;
+  color: white;
+  padding: 10px;
+  text-decoration: none;
+  margin: 5px 0;
+}
+
+.sidebar nav a.active {
+  background: #34495e;
+  border-radius: 5px;
+}
+
+.sidebar nav a:hover {
+  background: #34495e;
+}
+
+.user-management {
+  flex: 1;
+  padding: 20px;
 }
 
 .user-controls {
   display: flex;
-  justify-content: space-between;
-  margin: 30px 0 20px;
-  padding: 0 10px;
+  gap: 15px;
+  margin: 20px 0;
 }
 
 .user-controls input {
+  flex: 1;
   padding: 10px;
-  width: 300px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
 
 .user-controls button {
-  padding: 10px 16px;
-  background-color: #ffd700;
-  color: #222;
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
   border: none;
-  border-radius: 8px;
-  font-weight: bold;
+  border-radius: 5px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: background-color 0.3s ease;
-}
-
-.user-controls button:hover {
-  background-color: #e6c200;
 }
 
 .user-table {
-  background-color: #ffffff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.user-table table {
   width: 100%;
   border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .user-table th,
 .user-table td {
-  border: 1px solid #ddd;
   padding: 12px;
   text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
 .user-table th {
-  background-color: #f2f2f2;
-  color: #333;
+  background: #f8f9fa;
   font-weight: 600;
 }
 
-.user-table tr:nth-child(even) {
-  background-color: #fafafa;
+.user-table tr:hover {
+  background: #f8f9fa;
 }
 
-/* Enhanced Status badge styles - DARK COLORS and HIGHLY VISIBLE */
+/* Status badges */
 .status-badge {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 900;
-  font-size: 0.95rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  border: 3px solid;
-  text-shadow: 0 2px 3px rgba(0,0,0,0.3);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-  display: inline-block;
-  min-width: 120px;
-  text-align: center;
-  color: white;
-  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 .status-active {
-  background-color: #006400; /* Dark green */
-  border-color: #004d00; /* Even darker green border */
+  background: #28a745;
+  color: white;
 }
 
 .status-inactive {
-  background-color: #8B0000; /* Dark red */
-  border-color: #660000; /* Even darker red border */
+  background: #dc3545;
+  color: white;
 }
 
 .status-current {
-  background-color: #000080; /* Dark blue */
-  border-color: #000066; /* Even darker blue border */
+  background: #007bff;
+  color: white;
 }
 
-.user-table .edit,
-.user-table .delete,
-.user-table .check-btn {
+.check-btn {
+  padding: 6px 12px;
+  background: #6c757d;
+  color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-  margin: 2px;
-  font-weight: 700;
 }
 
-.user-table .edit {
-  background-color: #ffd700;
-  color: #222;
-  border: 2px solid #e6c200;
+.check-btn:hover {
+  background: #545b62;
 }
 
-.user-table .edit:hover {
-  background-color: #e6c200;
-  border-color: #ccaa00;
+.connection-status {
+  padding: 10px;
+  border-radius: 5px;
+  margin: 10px 0;
 }
 
-.user-table .delete {
-  background-color: #dc3545;
-  color: white;
-  border: 2px solid #bb2d3b;
+.connection-status.connected {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
 }
 
-.user-table .delete:hover {
-  background-color: #bb2d3b;
-  border-color: #9a2530;
+.connection-status.warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
 }
 
-.user-table .check-btn {
-  background-color: #6c757d;
-  color: white;
-  border: 2px solid #5a6268;
-  font-weight: 700;
-}
-
-.user-table .check-btn:hover {
-  background-color: #5a6268;
-  border-color: #495057;
+.connection-status.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }
 
 .loading, .error {
   text-align: center;
   padding: 20px;
   color: #666;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.error {
-  color: #8B0000;
-  background-color: #ffebee;
-  border: 2px solid #ffcdd2;
-  border-radius: 8px;
-  font-weight: 700;
 }
 
 .retry-btn {
-  background-color: #000080;
+  padding: 8px 16px;
+  background: #007bff;
   color: white;
-  border: 2px solid #000066;
-  padding: 12px 24px;
-  border-radius: 8px;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  margin-top: 15px;
-  font-weight: 800;
-  transition: all 0.3s ease;
-  font-size: 1rem;
+  margin-top: 10px;
 }
-
-.retry-btn:hover {
-  background-color: #000066;
-  border-color: #00004d;
-  transform: translateY(-2px);
-}
-
-.connection-status {
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-weight: 800;
-  border: 3px solid;
-  font-size: 1.1rem;
-  text-align: center;
-  color: white;
-}
-
-.connection-status.connected {
-  background-color: #006400;
-  border-color: #004d00;
-}
-
-.connection-status.warning {
-  background-color: #FF8C00;
-  border-color: #FF7F00;
-  color: #333;
-}
-
-.connection-status.error {
-  background-color: #8B0000;
-  border-color: #660000;
-}
-
-/* Make the status column content stand out more */
-.user-table td:nth-child(6) { /* Status column is now 6th */
-  text-align: center;
-  font-weight: 800;
-  padding: 15px;
-}
-
-/* Ensure the status badges are prominently displayed */
-.user-table .status-badge {
-  transition: all 0.3s ease;
-}
-
-.user-table .status-badge:hover {
-  transform: scale(1.08);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-/* Additional styling for better visibility */
-.user-id {
-  font-family: 'Courier New', monospace;
-  font-weight: 600;
-  color: #333;
-}
-
-.user-table td {
-  vertical-align: middle;
-  font-weight: 500;
-}
-
-.user-table thead th {
-  background-color: #2c3e50;
-  color: white;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  border-bottom: 3px solid #34495e;
-}
-
