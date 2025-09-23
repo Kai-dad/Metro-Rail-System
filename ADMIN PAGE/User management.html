@@ -23,37 +23,38 @@
       </nav>
       <div class="logout">
         <p>👤 Administrator</p>
-        <button id="logout-btn">Logout</button>
+        <button id="logout-btn">LOGOUT</button>
       </div>
     </aside>
     
     <main class="user-management">
-      <h1>User Management</h1>
+      <h1>USER MANAGEMENT</h1>
 
       <div id="connection-status" class="connection-status">
-        🔄 Connecting to Firebase...
+        🔄 CONNECTING TO FIREBASE...
       </div>
       
       <section class="user-controls">
-        <input type="text" id="search-input" placeholder="Search by username or email..." disabled />
-        <button id="refresh-btn">Refresh Users</button>
+        <input type="text" id="search-input" placeholder="SEARCH BY USERNAME OR EMAIL..." disabled />
+        <button id="refresh-btn">REFRESH USERS</button>
       </section>
 
       <div class="user-table-container">
         <table class="user-table">
           <thead>
             <tr>
-              <th>User ID</th>
-              <th>Email</th>
-              <th>Display Name</th>
-              <th>Account Created</th>
-              <th>Status </th>
-              <th>Action</th>
+              <th>USER ID</th>
+              <th>EMAIL</th>
+              <th>DISPLAY NAME</th>
+              <th>ACCOUNT CREATED</th>
+              <th>LAST SIGN-IN</th>
+              <th>STATUS</th>
+              <th>ACTION</th>
             </tr>
           </thead>
           <tbody id="users-table-body">
             <tr>
-              <td colspan="6" class="loading">Loading users...</td>
+              <td colspan="7" class="loading">LOADING USERS...</td>
             </tr>
           </tbody>
         </table>
@@ -68,15 +69,3 @@
   <script src="javascript/user-management.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
