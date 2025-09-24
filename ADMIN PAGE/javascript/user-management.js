@@ -326,7 +326,7 @@ async function checkAndDeleteUser(uid, email) {
 
     if (lastSignIn) {
       const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 30) { // consider inactive if no sign in for 30+ days
+      if (diffDays > 3) { // consider inactive if no sign in for 30+ days
         inactive = true;
       }
     } else {
