@@ -1,4 +1,4 @@
-const firebaseConfig = {
+/*const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
   projectId: "metro-rail-2de9c",
@@ -9,7 +9,7 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const auth = firebase.auth();
+const auth = firebase.auth();*/
 
 document.addEventListener('DOMContentLoaded', function() {
   
@@ -263,4 +263,5 @@ document.getElementById('notification-form').addEventListener('submit', function
     alert('Error sending notification. Please try again.');
   });
 });
+
 
