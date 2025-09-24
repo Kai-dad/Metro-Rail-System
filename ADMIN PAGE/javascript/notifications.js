@@ -1,7 +1,3 @@
-// Add Firebase SDK scripts to your HTML file if they are not there
-// <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
 const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
@@ -208,3 +204,4 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
+
