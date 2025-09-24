@@ -30,6 +30,89 @@ let originMarker, destMarker, routeLine;
 let currentRouteIndex = 0;
 let routeInterval;
 
+
+
+
+// ===================== SPA NAVIGATION =====================
+function showPage(pageId) {
+  // Hide all sections
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.add("hidden");
+  });
+
+  // Show target section
+  const target = document.querySelector(pageId);
+  if (target) {
+    target.classList.remove("hidden");
+  }
+
+  // Update active link
+  document.querySelectorAll(".main-nav a").forEach(link => {
+    link.classList.remove("active");
+    if (link.getAttribute("href") === pageId) {
+      link.classList.add("active");
+    }
+  });
+}
+
+// Handle normal navigation links (except Notifications)
+document.querySelectorAll(".main-nav a").forEach(link => {
+  link.addEventListener("click", (e) => {
+    const targetPage = link.getAttribute("href");
+
+    if (targetPage === "#notifications") return; // handled separately
+
+    e.preventDefault();
+    showPage(targetPage);
+  });
+});
+
+// ===================== PROTECT NOTIFICATIONS =====================
+function protectNotifications() {
+  const notifLink = document.querySelector('a[href="#notifications"]');
+
+  notifLink.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // ✅ logged in → show notifications page
+        showPage("#notifications");
+      } else {
+        // ❌ not logged in → send to login
+        alert("You must log in to view Notifications.");
+        window.location.href = "login.html";
+      }
+    });
+  });
+}
+
+protectNotifications();
+
+// ===================== OPTIONAL: LOGOUT BUTTON =====================
+const logoutBtn = document.querySelector("#logout-btn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    alert("Logged out successfully!");
+    window.location.href = "login.html";
+  });
+}
+
+// ===================== DEFAULT PAGE LOAD =====================
+window.addEventListener("DOMContentLoaded", () => {
+  showPage("#home"); // show home by default
+});
+
+
+
+
+
+
+
+
+
+
 const homeRoutes = [
   { origin: "Saulsville", destination: "Pretoria", price: "R5,50", originCoords: [-25.77000000, 28.054444], destCoords: [-25.7548, 28.1868], color: '#3498db' },
   { origin: "Pretoria", destination: "De Wildt", price: "R7,20", originCoords: [-25.7548, 28.1868], destCoords: [-25.61248, 27.91062], color: '#2ecc71' },
