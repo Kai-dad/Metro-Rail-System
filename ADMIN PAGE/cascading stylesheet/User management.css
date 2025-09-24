@@ -114,8 +114,32 @@ header {
   background-color: #bb2d3b;
 }
 
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #fff; /* white text for contrast */
+}
+
+.status-active {
+  background-color: #28a745; /* green background */
+}
+
+.status-inactive {
+  background-color: #dc3545; /* red background */
+}
+
+.status-current {
+  background-color: #007bff; /* blue background */
+}
+
+
 
   
+
 
 
 
