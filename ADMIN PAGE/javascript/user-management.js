@@ -232,7 +232,7 @@ async function checkAndDeleteUser(uid, email) {
 
     if (lastSignIn) {
       const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 30) inactive = true;
+      if (diffDays > 1) inactive = true;
     } else {
       inactive = true;
     }
