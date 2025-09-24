@@ -529,3 +529,166 @@ function showSlides() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+/* javascript for notifications */
+
+
+
+
+
+ <script>
+    // Firebase configuration - replace with your actual config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "YOUR_APP_ID"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // DOM elements
+    const notificationsList = document.getElementById('notifications-list');
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const systemStatus = document.getElementById('system-status');
+    
+    let currentFilter = 'all';
+    let notifications = [];
+    
+    // Format timestamp to readable date
+    function formatDate(timestamp) {
+      if (!timestamp) return 'Date not available';
+      
+      const date = timestamp.toDate();
+      return date.toLocaleString();
+    }
+    
+    // Determine system status based on notifications
+    function updateSystemStatus() {
+      const criticalNotifications = notifications.filter(notif => 
+        notif.urgency === 'critical' && 
+        new Date(notif.timestamp.toDate()) > new Date(Date.now() - 24*60*60*1000) // Last 24 hours
+      );
+      
+      if (criticalNotifications.length > 0) {
+        systemStatus.textContent = 'Service Disrupted';
+        systemStatus.className = 'status-badge status-disrupted';
+      } else if (notifications.some(notif => 
+        notif.urgency === 'high' && 
+        new Date(notif.timestamp.toDate()) > new Date(Date.now() - 24*60*60*1000)
+      )) {
+        systemStatus.textContent = 'Delays Expected';
+        systemStatus.className = 'status-badge status-delayed';
+      } else {
+        systemStatus.textContent = 'System Operational';
+        systemStatus.className = 'status-badge status-operational';
+      }
+    }
+    
+    // Render notifications based on current filter
+    function renderNotifications() {
+      let filteredNotifications = notifications;
+      
+      if (currentFilter !== 'all') {
+        filteredNotifications = notifications.filter(notif => notif.type === currentFilter);
+      }
+      
+      // Sort by timestamp (newest first)
+      filteredNotifications.sort((a, b) => b.timestamp - a.timestamp);
+      
+      if (filteredNotifications.length === 0) {
+        notificationsList.innerHTML = `
+          <div class="no-notifications">
+            <h3>No notifications found</h3>
+            <p>There are currently no ${currentFilter !== 'all' ? currentFilter : ''} notifications.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      notificationsList.innerHTML = filteredNotifications.map(notif => {
+        const urgencyClass = notif.urgency === 'critical' ? 'critical' : 
+                            notif.urgency === 'high' ? 'high' : '';
+        
+        // Create line badges
+        const lineBadges = notif.lines ? notif.lines.map(line => 
+          `<span class="line-badge line-${line}">${line.charAt(0).toUpperCase() + line.slice(1)} Line</span>`
+        ).join(' ') : '';
+        
+        return `
+          <div class="notification-card ${urgencyClass}">
+            <div class="notification-header">
+              <div class="notification-title">${notif.title}</div>
+              <div class="notification-time">${formatDate(notif.timestamp)}</div>
+            </div>
+            <div class="notification-content">
+              <p>${notif.message}</p>
+            </div>
+            <div class="notification-meta">
+              ${lineBadges ? `<div>Affected lines: ${lineBadges}</div>` : ''}
+              <div>Priority: <span class="status-badge ${urgencyClass}">${notif.urgency}</span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Fetch notifications from Firestore
+    function fetchNotifications() {
+      notificationsList.innerHTML = '<div class="loading">Loading notifications...</div>';
+      
+      db.collection("notifications")
+        .orderBy("timestamp", "desc")
+        .limit(50)
+        .get()
+        .then((querySnapshot) => {
+          notifications = [];
+          querySnapshot.forEach((doc) => {
+            notifications.push({ id: doc.id, ...doc.data() });
+          });
+          
+          updateSystemStatus();
+          renderNotifications();
+        })
+        .catch((error) => {
+          console.error("Error getting notifications: ", error);
+          notificationsList.innerHTML = `
+            <div class="no-notifications">
+              <h3>Error loading notifications</h3>
+              <p>Please try again later.</p>
+            </div>
+          `;
+        });
+    }
+    
+    // Set up event listeners
+    filterButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        currentFilter = button.dataset.filter;
+        renderNotifications();
+      });
+    });
+    
+    refreshBtn.addEventListener('click', fetchNotifications);
+    
+    // Set up real-time listener for new notifications
+    db.collection("notifications")
+      .orderBy("timestamp", "desc")
+      .limit(10)
+      .onSnapshot((querySnapshot) => {
+        // Only refetch if we're not already loading
+        if (!notificationsList.innerHTML.includes('Loading')) {
+          fetchNotifications();
+        }
+      });
+    
+    // Initial fetch
+    fetchNotifications();
+  </script>
