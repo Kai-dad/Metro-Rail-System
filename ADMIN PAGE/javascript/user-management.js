@@ -149,24 +149,26 @@ function renderUsers(usersToRender) {
       }
     }
 
-    // Status logic
-    let statusBadge = '<span class="status-badge status-active">Active</span>';
+    // Status logic - FIXED VERSION
+    let statusBadge = '';
     const isCurrentUser = currentUser && user.id === currentUser.uid;
 
     if (isCurrentUser) {
       statusBadge = '<span class="status-badge status-current">Current User</span>';
     } else {
-      let inactive = false;
+      // Check if user has signed in before
       if (user.lastSignInTime) {
-        const lastSignIn = new Date(user.lastSignInTime);
+        const lastSignIn = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
         const now = new Date();
         const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-        if (diffDays > 30) inactive = true;
+        
+        if (diffDays <= 30) {
+          statusBadge = '<span class="status-badge status-active">Active</span>';
+        } else {
+          statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
+        }
       } else {
-        inactive = true; // never signed in
-      }
-
-      if (inactive) {
+        // User has never signed in
         statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
       }
     }
@@ -215,7 +217,7 @@ function searchUsers() {
   renderUsers(filteredUsers);
 }
 
-// Check and delete user
+// Check and delete user - UPDATED DATE HANDLING
 async function checkAndDeleteUser(uid, email) {
   try {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -226,15 +228,16 @@ async function checkAndDeleteUser(uid, email) {
     }
 
     const userData = userDoc.data();
-    const lastSignIn = userData.lastSignInTime ? new Date(userData.lastSignInTime) : null;
-    const now = new Date();
+    let lastSignIn = null;
     let inactive = false;
 
-    if (lastSignIn) {
+    if (userData.lastSignInTime) {
+      lastSignIn = userData.lastSignInTime.toDate ? userData.lastSignInTime.toDate() : new Date(userData.lastSignInTime);
+      const now = new Date();
       const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
       if (diffDays > 30) inactive = true;
     } else {
-      inactive = true;
+      inactive = true; // never signed in
     }
 
     if (inactive) {
@@ -288,3 +291,5 @@ document.addEventListener('DOMContentLoaded', initApp);
 
 // Export functions to global scope
 window.fetchUsers = fetchUsers;
+window.checkAndDeleteUser = checkAndDeleteUser;
+window.searchUsers = searchUsers;
