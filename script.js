@@ -532,15 +532,6 @@ document.addEventListener('DOMContentLoaded', init);
 
 /* javascript for notifications */
 
-
-
-
-
-
-    
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
     
     // DOM elements
     const notificationsList = document.getElementById('notifications-list');
