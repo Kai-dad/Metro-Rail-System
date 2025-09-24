@@ -59,22 +59,6 @@ protectNotifications();
 
 
 
-// ===================== OPTIONAL: LOGOUT BUTTON =====================
-const logoutBtn = document.querySelector("#logout-btn");
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-    alert("Logged out successfully!");
-    window.location.href = "login.html";
-  });
-}
-
-// ===================== DEFAULT PAGE LOAD =====================
-window.addEventListener("DOMContentLoaded", () => {
-  showPage("#home"); // show home by default
-});
-
-
 
 
 
