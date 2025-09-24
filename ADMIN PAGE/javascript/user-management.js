@@ -3,12 +3,10 @@ const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
   projectId: "metro-rail-2de9c",
- // storageBucket: "metro-rail-2de9c.firebasestorage.app",
   storageBucket: "metro-rail-2de9c.appspot.com",
   messagingSenderId: "1036516254492",
   appId: "1:1036516254492:web:a1d07b16233af9cecc90d9"
 };
-
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -30,12 +28,10 @@ function getDOMElements() {
   logoutBtn = document.getElementById('logout-btn');
   connectionStatus = document.getElementById('connection-status');
   
-  // Check if all elements exist
   if (!usersTableBody || !searchInput || !refreshBtn || !logoutBtn || !connectionStatus) {
     console.error('One or more DOM elements not found');
     return false;
   }
-  
   return true;
 }
 
@@ -49,7 +45,7 @@ function showConnectionStatus(message, type = 'info') {
   }
 }
 
-// Function to handle authentication state changes
+// Authentication listener
 function setupAuthStateListener() {
   auth.onAuthStateChanged((user) => {
     if (user) {
@@ -57,7 +53,6 @@ function setupAuthStateListener() {
       showConnectionStatus('✅ Authenticated. Loading users...', 'connected');
       fetchUsers();
     } else {
-      // Not authenticated, redirect to login
       showConnectionStatus('🔒 Authentication required. Redirecting to login...', 'warning');
       setTimeout(() => {
         window.location.href = '../login.html';
@@ -66,9 +61,9 @@ function setupAuthStateListener() {
   });
 }
 
+// Save or update user in Firestore on login
 auth.onAuthStateChanged(async (user) => {
   if (user) {
-    // Save user to Firestore if not already there
     const userRef = db.collection("users").doc(user.uid);
     const doc = await userRef.get();
 
@@ -80,7 +75,6 @@ auth.onAuthStateChanged(async (user) => {
         lastSignInTime: new Date()
       });
     } else {
-      // Update last login time
       await userRef.update({
         lastSignInTime: new Date()
       });
@@ -88,15 +82,13 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// Function to fetch users from Firebase
-// Function to fetch and live-listen to users from Firebase
+// Real-time fetch users
 async function fetchUsers() {
   try {
     if (usersTableBody) {
       usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading users...</td></tr>';
     }
 
-    // Use Firestore snapshot listener for real-time updates
     db.collection('users').onSnapshot(snapshot => {
       users = [];
 
@@ -125,51 +117,14 @@ async function fetchUsers() {
       showConnectionStatus('❌ Connection error: ' + error.message, 'error');
       if (searchInput) searchInput.disabled = true;
     });
-    
+
   } catch (error) {
     console.error('Error setting up real-time users listener:', error);
     showConnectionStatus('❌ Error: ' + error.message, 'error');
   }
 }
 
-function searchUsers() {
-  if (!searchInput || !usersTableBody) return;
-  
-  const searchTerm = searchInput.value.toLowerCase();
-  
-  if (!searchTerm) {
-    renderUsers(users);
-    return;
-  }
-  
-  const filteredUsers = users.filter(user => {
-    const displayName = (user.displayName || '').toLowerCase();
-    const email = (user.email || '').toLowerCase();
-    const uid = (user.id || '').toLowerCase();
-    
-    return displayName.includes(searchTerm) || 
-           email.includes(searchTerm) || 
-           uid.includes(searchTerm);
-  });
-  
-  renderUsers(filteredUsers);
-}
-
-// Function to handle logout
-function handleLogout() {
-  if (confirm('Are you sure you want to logout?')) {
-    if (auth) {
-      auth.signOut().then(() => {
-        window.location.href = '../login.html';
-      }).catch((error) => {
-        console.error('Error signing out:', error);
-        alert('Error signing out: ' + error.message);
-      });
-    } else {
-      window.location.href = '../login.html';
-    }
-  }
-}
+// Render users
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
 
@@ -183,6 +138,7 @@ function renderUsers(usersToRender) {
   usersToRender.forEach(user => {
     const row = document.createElement('tr');
 
+    // Format creation date
     let createdAt = 'N/A';
     if (user.createdAt) {
       try {
@@ -193,10 +149,27 @@ function renderUsers(usersToRender) {
       }
     }
 
+    // Status logic
+    let statusBadge = '<span class="status-badge status-active">Active</span>';
     const isCurrentUser = currentUser && user.id === currentUser.uid;
-    const statusBadge = isCurrentUser ? 
-      '<span class="status-badge status-active">Current User</span>' : 
-      '<span class="status-badge status-active">Active</span>';
+
+    if (isCurrentUser) {
+      statusBadge = '<span class="status-badge status-current">Current User</span>';
+    } else {
+      let inactive = false;
+      if (user.lastSignInTime) {
+        const lastSignIn = new Date(user.lastSignInTime);
+        const now = new Date();
+        const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
+        if (diffDays > 30) inactive = true;
+      } else {
+        inactive = true; // never signed in
+      }
+
+      if (inactive) {
+        statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
+      }
+    }
 
     const displayName = user.displayName || user.email || 'N/A';
     const email = user.email || 'N/A';
@@ -218,9 +191,33 @@ function renderUsers(usersToRender) {
   });
 }
 
+// Search users
+function searchUsers() {
+  if (!searchInput || !usersTableBody) return;
+
+  const searchTerm = searchInput.value.toLowerCase();
+
+  if (!searchTerm) {
+    renderUsers(users);
+    return;
+  }
+
+  const filteredUsers = users.filter(user => {
+    const displayName = (user.displayName || '').toLowerCase();
+    const email = (user.email || '').toLowerCase();
+    const uid = (user.id || '').toLowerCase();
+
+    return displayName.includes(searchTerm) || 
+           email.includes(searchTerm) || 
+           uid.includes(searchTerm);
+  });
+
+  renderUsers(filteredUsers);
+}
+
+// Check and delete user
 async function checkAndDeleteUser(uid, email) {
   try {
-    // Fetch user metadata
     const userDoc = await db.collection('users').doc(uid).get();
 
     if (!userDoc.exists) {
@@ -230,17 +227,14 @@ async function checkAndDeleteUser(uid, email) {
 
     const userData = userDoc.data();
     const lastSignIn = userData.lastSignInTime ? new Date(userData.lastSignInTime) : null;
-
     const now = new Date();
     let inactive = false;
 
     if (lastSignIn) {
       const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 3) { // consider inactive if no sign in for 30+ days
-        inactive = true;
-      }
+      if (diffDays > 30) inactive = true;
     } else {
-      inactive = true; // no lastSignIn info = inactive
+      inactive = true;
     }
 
     if (inactive) {
@@ -248,7 +242,6 @@ async function checkAndDeleteUser(uid, email) {
       if (confirmDelete) {
         await db.collection('users').doc(uid).delete();
         alert(`User ${email} has been deleted.`);
-        fetchUsers(); // refresh the table
       }
     } else {
       alert(`User ${email} is active.`);
@@ -259,30 +252,39 @@ async function checkAndDeleteUser(uid, email) {
   }
 }
 
-// Initialize the application
+// Logout
+function handleLogout() {
+  if (confirm('Are you sure you want to logout?')) {
+    if (auth) {
+      auth.signOut().then(() => {
+        window.location.href = '../login.html';
+      }).catch((error) => {
+        console.error('Error signing out:', error);
+        alert('Error signing out: ' + error.message);
+      });
+    } else {
+      window.location.href = '../login.html';
+    }
+  }
+}
+
+// Initialize app
 function initApp() {
-  // Get DOM elements safely
   if (!getDOMElements()) {
     console.error('Failed to initialize app: DOM elements not found');
     showConnectionStatus('❌ Error initializing application', 'error');
     return;
   }
-  
-  // Event listeners
+
   searchInput.addEventListener('input', searchUsers);
   refreshBtn.addEventListener('click', fetchUsers);
   logoutBtn.addEventListener('click', handleLogout);
-  
-  // Set up auth state listener
+
   setupAuthStateListener();
 }
 
-// Start the app when DOM is loaded
+// Start app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
 
-// Export functions to global scope for retry button
+// Export functions to global scope
 window.fetchUsers = fetchUsers;
-
-
-        
-  
