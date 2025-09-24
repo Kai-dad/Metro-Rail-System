@@ -210,3 +210,43 @@ document.addEventListener('DOMContentLoaded', function() {
   renderNotifications();
 
 });
+
+
+
+
+
+
+// In the admin page's notifications.js
+document.getElementById('notification-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  // Get form values
+  const type = document.getElementById('notification-type').value;
+  const title = document.getElementById('notification-title').value;
+  const message = document.getElementById('notification-message').value;
+  const urgency = document.querySelector('input[name="urgency"]:checked').value;
+  
+  // Get selected lines
+  const lines = Array.from(document.querySelectorAll('#selected-lines .line-tag'))
+    .map(tag => tag.dataset.value);
+  
+  // Save to Firestore
+  db.collection("notifications").add({
+    type,
+    title,
+    message,
+    lines,
+    urgency,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(() => {
+    alert('Notification sent successfully!');
+    // Close modal and reset form
+    document.getElementById('notification-modal').style.display = 'none';
+    document.getElementById('notification-form').reset();
+  })
+  .catch((error) => {
+    console.error("Error sending notification: ", error);
+    alert('Error sending notification. Please try again.');
+  });
+});
