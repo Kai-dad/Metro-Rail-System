@@ -536,16 +536,7 @@ document.addEventListener('DOMContentLoaded', init);
 
 
 
- <script>
-    // Firebase configuration - replace with your actual config
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "your-project.firebaseapp.com",
-      projectId: "your-project-id",
-      storageBucket: "your-project.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "YOUR_APP_ID"
-    };
+
     
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -691,4 +682,4 @@ document.addEventListener('DOMContentLoaded', init);
     
     // Initial fetch
     fetchNotifications();
-  </script>
+
