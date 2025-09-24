@@ -247,7 +247,7 @@ function renderUsers(usersToRender) {
         
         console.log(`User ${user.email}: ${diffDays} days since last activity`);
         
-        if (diffDays <= 30) {
+        if (diffDays <= 7) {
           statusBadge = '<span class="status-badge status-active">Active</span>';
         } else {
           statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
@@ -340,7 +340,7 @@ async function checkAndDeleteUser(uid, email) {
       const diffTime = Math.abs(now - lastSignInDate);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (diffDays <= 30) {
+      if (diffDays <= 7) {
         inactive = false;
       }
     }
