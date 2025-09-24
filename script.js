@@ -13,12 +13,17 @@ function protectNotifications() {
   const notifLink = document.querySelector('a[href="#notifications"]');
 
   notifLink.addEventListener("click", (e) => {
-    e.preventDefault(); // stop default
+    e.preventDefault(); // stop SPA from switching immediately
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // ✅ user logged in → show notifications section
+        // ✅ user logged in → manually show notifications page
         document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
         document.querySelector("#notifications").classList.remove("hidden");
+
+        // also mark nav link as active
+        document.querySelectorAll(".main-nav a").forEach(a => a.classList.remove("active"));
+        notifLink.classList.add("active");
       } else {
         // ❌ not logged in → send to login
         alert("You must log in to view Notifications.");
@@ -29,6 +34,7 @@ function protectNotifications() {
 }
 
 protectNotifications();
+
 
 
 
