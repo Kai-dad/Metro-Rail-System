@@ -71,12 +71,12 @@ auth.onAuthStateChanged(async (user) => {
       await userRef.set({
         email: user.email,
         displayName: user.displayName || "",
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSignInTime: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: new Date(),
+        lastSignInTime: new Date()
       });
     } else {
       await userRef.update({
-        lastSignInTime: firebase.firestore.FieldValue.serverTimestamp()
+        lastSignInTime: new Date()
       });
     }
   }
@@ -157,32 +157,13 @@ function renderUsers(usersToRender) {
       statusBadge = '<span class="status-badge status-current">Current User</span>';
     } else {
       let inactive = false;
-
       if (user.lastSignInTime) {
-        let lastSignIn;
-        try {
-          if (user.lastSignInTime.toDate) {
-            lastSignIn = user.lastSignInTime.toDate(); // Firestore Timestamp
-          } else if (typeof user.lastSignInTime === "string" || typeof user.lastSignInTime === "number") {
-            lastSignIn = new Date(user.lastSignInTime); // String or ms
-          } else {
-            lastSignIn = new Date(user.lastSignInTime); // Fallback
-          }
-
-          console.log("User:", user.email, "lastSignInTime:", lastSignIn);
-
-          const now = new Date();
-          const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-
-          if (diffDays > 3) {
-            inactive = true;
-          }
-        } catch (e) {
-          console.error("Error parsing lastSignInTime:", e, user.lastSignInTime);
-          inactive = true;
-        }
+        const lastSignIn = new Date(user.lastSignInTime);
+        const now = new Date();
+        const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
+        if (diffDays > 30) inactive = true;
       } else {
-        inactive = true; // No login record
+        inactive = true; // never signed in
       }
 
       if (inactive) {
@@ -245,24 +226,13 @@ async function checkAndDeleteUser(uid, email) {
     }
 
     const userData = userDoc.data();
-    let lastSignIn = null;
-
-    if (userData.lastSignInTime) {
-      if (userData.lastSignInTime.toDate) {
-        lastSignIn = userData.lastSignInTime.toDate();
-      } else if (typeof userData.lastSignInTime === "string" || typeof userData.lastSignInTime === "number") {
-        lastSignIn = new Date(userData.lastSignInTime);
-      } else {
-        lastSignIn = new Date(userData.lastSignInTime);
-      }
-    }
-
+    const lastSignIn = userData.lastSignInTime ? new Date(userData.lastSignInTime) : null;
     const now = new Date();
     let inactive = false;
 
     if (lastSignIn) {
       const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 3) inactive = true;
+      if (diffDays > 30) inactive = true;
     } else {
       inactive = true;
     }
