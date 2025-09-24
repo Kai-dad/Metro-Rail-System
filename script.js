@@ -72,15 +72,15 @@ document.querySelectorAll(".main-nav a").forEach(link => {
 function protectNotifications() {
   const notifLink = document.querySelector('a[href="#notifications"]');
 
+  if (!notifLink) return;
+
   notifLink.addEventListener("click", (e) => {
     e.preventDefault();
 
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // ✅ logged in → show notifications page
-        showPage("#notifications");
+        showPage("notifications"); // logged in → show notifications
       } else {
-        // ❌ not logged in → send to login
         alert("You must log in to view Notifications.");
         window.location.href = "login.html";
       }
@@ -89,6 +89,7 @@ function protectNotifications() {
 }
 
 protectNotifications();
+
 
 // ===================== OPTIONAL: LOGOUT BUTTON =====================
 const logoutBtn = document.querySelector("#logout-btn");
