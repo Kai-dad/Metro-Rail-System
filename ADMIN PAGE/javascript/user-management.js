@@ -70,13 +70,15 @@ auth.onAuthStateChanged(async (user) => {
     if (!doc.exists) {
       await userRef.set({
         email: user.email,
-        displayName: user.displayName || "",
-        createdAt: new Date(),
-        lastSignInTime: new Date()
+        displayName: user.displayName || user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastSignInTime: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'active'
       });
     } else {
       await userRef.update({
-        lastSignInTime: new Date()
+        lastSignInTime: firebase.firestore.FieldValue.serverTimestamp(),
+        status: 'active'
       });
     }
   }
@@ -109,6 +111,7 @@ async function fetchUsers() {
         });
       });
 
+      console.log('Fetched users:', users); // Debug log
       renderUsers(users);
       showConnectionStatus(`✅ Connected. Loaded ${users.length} users.`, 'connected');
       if (searchInput) searchInput.disabled = false;
@@ -124,7 +127,27 @@ async function fetchUsers() {
   }
 }
 
-// Render users
+// Convert Firestore timestamp to Date
+function convertTimestampToDate(timestamp) {
+  if (!timestamp) return null;
+  
+  try {
+    if (timestamp.toDate) {
+      return timestamp.toDate();
+    } else if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000);
+    } else if (typeof timestamp === 'string') {
+      return new Date(timestamp);
+    } else {
+      return new Date(timestamp);
+    }
+  } catch (e) {
+    console.error('Error converting timestamp:', e, timestamp);
+    return null;
+  }
+}
+
+// Render users with better status detection
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
 
@@ -142,25 +165,35 @@ function renderUsers(usersToRender) {
     let createdAt = 'N/A';
     if (user.createdAt) {
       try {
-        const date = user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt);
-        createdAt = date.toLocaleDateString();
+        const date = convertTimestampToDate(user.createdAt);
+        if (date) {
+          createdAt = date.toLocaleDateString();
+        }
       } catch (e) {
-        console.error('Error formatting date:', e);
+        console.error('Error formatting creation date:', e, user.createdAt);
       }
     }
 
-    // Status logic - FIXED VERSION
+    // Status logic - IMPROVED VERSION
     let statusBadge = '';
     const isCurrentUser = currentUser && user.id === currentUser.uid;
 
     if (isCurrentUser) {
       statusBadge = '<span class="status-badge status-current">Current User</span>';
     } else {
-      // Check if user has signed in before
+      // Check last sign-in time with better error handling
+      let lastSignInDate = null;
       if (user.lastSignInTime) {
-        const lastSignIn = user.lastSignInTime.toDate ? user.lastSignInTime.toDate() : new Date(user.lastSignInTime);
+        lastSignInDate = convertTimestampToDate(user.lastSignInTime);
+        console.log(`User ${user.email} lastSignIn:`, lastSignInDate, 'Raw:', user.lastSignInTime); // Debug
+      }
+
+      if (lastSignInDate) {
         const now = new Date();
-        const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
+        const diffTime = Math.abs(now - lastSignInDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        console.log(`User ${user.email} days since last sign-in:`, diffDays); // Debug
         
         if (diffDays <= 30) {
           statusBadge = '<span class="status-badge status-active">Active</span>';
@@ -168,7 +201,8 @@ function renderUsers(usersToRender) {
           statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
         }
       } else {
-        // User has never signed in
+        // No last sign-in time recorded
+        console.log(`User ${user.email} has no lastSignInTime`); // Debug
         statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
       }
     }
@@ -217,7 +251,7 @@ function searchUsers() {
   renderUsers(filteredUsers);
 }
 
-// Check and delete user - UPDATED DATE HANDLING
+// Check and delete user with better date handling
 async function checkAndDeleteUser(uid, email) {
   try {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -228,26 +262,33 @@ async function checkAndDeleteUser(uid, email) {
     }
 
     const userData = userDoc.data();
-    let lastSignIn = null;
-    let inactive = false;
+    let lastSignInDate = null;
+    let inactive = true; // Default to inactive
 
     if (userData.lastSignInTime) {
-      lastSignIn = userData.lastSignInTime.toDate ? userData.lastSignInTime.toDate() : new Date(userData.lastSignInTime);
-      const now = new Date();
-      const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 30) inactive = true;
-    } else {
-      inactive = true; // never signed in
+      lastSignInDate = convertTimestampToDate(userData.lastSignInTime);
+      
+      if (lastSignInDate) {
+        const now = new Date();
+        const diffTime = Math.abs(now - lastSignInDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        console.log(`Check/Delete: User ${email} days since last sign-in:`, diffDays); // Debug
+        
+        if (diffDays <= 30) {
+          inactive = false; // Active if signed in within 30 days
+        }
+      }
     }
 
     if (inactive) {
-      const confirmDelete = confirm(`User ${email} appears inactive. Do you want to delete this user?`);
+      const confirmDelete = confirm(`User ${email} appears inactive (no recent sign-in). Do you want to delete this user?`);
       if (confirmDelete) {
         await db.collection('users').doc(uid).delete();
         alert(`User ${email} has been deleted.`);
       }
     } else {
-      alert(`User ${email} is active.`);
+      alert(`User ${email} is active (signed in within last 30 days).`);
     }
   } catch (error) {
     console.error('Error checking/deleting user:', error);
@@ -293,3 +334,4 @@ document.addEventListener('DOMContentLoaded', initApp);
 window.fetchUsers = fetchUsers;
 window.checkAndDeleteUser = checkAndDeleteUser;
 window.searchUsers = searchUsers;
+window.renderUsers = renderUsers;
