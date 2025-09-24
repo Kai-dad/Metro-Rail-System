@@ -212,6 +212,225 @@ footer nav a {
 }
 
 
+
+/*This is the notifications css */
+
+    :root {
+      --primary-color: #7b8186;
+      --secondary-color: #6c757d;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --danger-color: #dc3545;
+      --light-color: #f8f9fa;
+      --dark-color: #343a40;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f4f6f9;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+    
+    header {
+      background-color: var(--primary-color);
+      color: rgb(40, 34, 34);
+      padding: 1rem 0;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo h1 {
+      font-size: 1.5rem;
+    }
+    
+    .user-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #004494;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .status-operational {
+      background-color: var(--success-color);
+      color: white;
+    }
+    
+    .status-delayed {
+      background-color: var(--warning-color);
+      color: black;
+    }
+    
+    .status-disrupted {
+      background-color: var(--danger-color);
+      color: white;
+    }
+    
+    .notification-filters {
+      margin: 20px 0;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .filter-btn {
+      background-color: white;
+      border: 1px solid #ddd;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    
+    .filter-btn.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+    
+    .notifications-container {
+      margin: 20px 0;
+    }
+    
+    .notification-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border-left: 4px solid var(--secondary-color);
+    }
+    
+    .notification-card.critical {
+      border-left-color: var(--danger-color);
+    }
+    
+    .notification-card.high {
+      border-left-color: var(--warning-color);
+    }
+    
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      text-align: left;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      text-align: left;
+    }
+    
+    .notification-time {
+      color: var(--secondary-color);
+      font-size: 0.9rem;
+    }
+    
+    .notification-content {
+      margin-bottom: 15px;
+    }
+    
+    .notification-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 0.9rem;
+      color: var(--secondary-color);
+    }
+    
+    .line-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: white;
+      font-weight: 500;
+      margin-right: 5px;
+    }
+    
+    .line-red {
+      background-color: #e53935;
+    }
+    
+    .line-blue {
+      background-color: #1976d2;
+    }
+    
+    .line-green {
+      background-color: #43a047;
+    }
+    
+    .no-notifications {
+      text-align: center;
+      padding: 40px;
+      color: var(--secondary-color);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+    }
+    
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+      }
+      
+      .notification-header {
+        flex-direction: column;
+        gap: 5px;
+      }
+    }
+  
+
 /* travel rules css */
 
 #travelrules body {
