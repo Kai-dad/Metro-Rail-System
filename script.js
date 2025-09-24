@@ -1,39 +1,9 @@
 // === Firebase Setup ===
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 
-
-
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-const auth = getAuth();
-
-function protectNotifications() {
-  const notifLink = document.querySelector('a[href="#notifications"]');
-
-  notifLink.addEventListener("click", (e) => {
-    e.preventDefault(); // stop SPA from switching immediately
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // ✅ user logged in → manually show notifications page
-        document.querySelectorAll(".page").forEach(p => p.classList.add("hidden"));
-        document.querySelector("#notifications").classList.remove("hidden");
-
-        // also mark nav link as active
-        document.querySelectorAll(".main-nav a").forEach(a => a.classList.remove("active"));
-        notifLink.classList.add("active");
-      } else {
-        // ❌ not logged in → send to login
-        alert("You must log in to view Notifications.");
-        window.location.href = "login.html";
-      }
-    });
-  });
-}
-
-protectNotifications();
 
 
 
@@ -53,6 +23,7 @@ const firebaseConfig = {
 // Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 let homeMap, scheduleMap;
 let originMarker, destMarker, routeLine;
