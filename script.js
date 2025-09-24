@@ -34,40 +34,6 @@ let routeInterval;
 
 
 
-// ===================== SPA NAVIGATION =====================
-function showPage(pageId) {
-  // Hide all sections
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.add("hidden");
-  });
-
-  // Show target section
-  const target = document.querySelector(pageId);
-  if (target) {
-    target.classList.remove("hidden");
-  }
-
-  // Update active link
-  document.querySelectorAll(".main-nav a").forEach(link => {
-    link.classList.remove("active");
-    if (link.getAttribute("href") === pageId) {
-      link.classList.add("active");
-    }
-  });
-}
-
-// Handle normal navigation links (except Notifications)
-document.querySelectorAll(".main-nav a").forEach(link => {
-  link.addEventListener("click", (e) => {
-    const targetPage = link.getAttribute("href");
-
-    if (targetPage === "#notifications") return; // handled separately
-
-    e.preventDefault();
-    showPage(targetPage);
-  });
-});
-
 // ===================== PROTECT NOTIFICATIONS =====================
 function protectNotifications() {
   const notifLink = document.querySelector('a[href="#notifications"]');
@@ -89,6 +55,8 @@ function protectNotifications() {
 }
 
 protectNotifications();
+
+
 
 
 // ===================== OPTIONAL: LOGOUT BUTTON =====================
