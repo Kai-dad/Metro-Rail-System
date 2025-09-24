@@ -1,4 +1,8 @@
-/*const firebaseConfig = {
+// Add Firebase SDK scripts to your HTML file if they are not there
+// <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+// <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+const firebaseConfig = {
   apiKey: "AIzaSyB2gjql42QQAn6kEnuAlb-U8uO4veOf9kQ",
   authDomain: "metro-rail-2de9c.firebaseapp.com",
   projectId: "metro-rail-2de9c",
@@ -9,47 +13,8 @@
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const auth = firebase.auth();*/
 
 document.addEventListener('DOMContentLoaded', function() {
-  
-  const notifications = [
-    {
-      id: 1,
-      type: 'delay',
-      title: 'Red Line Delay',
-      message: '15-minute delay due to signal problems between Central and North Stations',
-      lines: ['Red'],
-      channels: ['app', 'display'],
-      urgency: 'high',
-      time: '2023-11-20T08:15:00',
-      read: false
-    },
-    {
-      id: 2,
-      type: 'maintenance',
-      title: 'Scheduled Maintenance',
-      message: 'Blue Line will be closed from 10PM to 2AM for track maintenance',
-      lines: ['Blue'],
-      channels: ['app', 'email', 'display'],
-      urgency: 'normal',
-      time: '2023-11-19T16:30:00',
-      read: true
-    },
-    {
-      id: 3,
-      type: 'alert',
-      title: 'Security Alert',
-      message: 'Suspicious package reported at Downtown Station. Police investigating.',
-      lines: ['Red', 'Green'],
-      channels: ['app', 'sms'],
-      urgency: 'critical',
-      time: '2023-11-18T14:05:00',
-      read: false
-    }
-  ];
-
-  
   const notificationsList = document.querySelector('.notifications-list');
   const filterSelect = document.getElementById('notification-filter');
   const modal = document.getElementById('notification-modal');
@@ -61,18 +26,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const lineSelect = document.getElementById('line-select');
   const selectedLines = document.getElementById('selected-lines');
 
-  
-  function renderNotifications(filter = 'all') {
+  // Function to render notifications from a given array
+  function renderNotifications(data, filter = 'all') {
     notificationsList.innerHTML = '';
     
-    let filteredNotifications = [...notifications];
+    let filteredNotifications = [...data];
     
     if (filter === 'unread') {
-      filteredNotifications = notifications.filter(n => !n.read);
+      filteredNotifications = data.filter(n => !n.read);
     } else if (filter === 'urgent') {
-      filteredNotifications = notifications.filter(n => n.urgency === 'high' || n.urgency === 'critical');
+      filteredNotifications = data.filter(n => n.urgency === 'high' || n.urgency === 'critical');
     } else if (filter === 'scheduled') {
-      filteredNotifications = notifications.filter(n => n.type === 'maintenance');
+      filteredNotifications = data.filter(n => n.type === 'maintenance');
     }
     
     if (filteredNotifications.length === 0) {
@@ -88,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     filteredNotifications.forEach(notification => {
       const notificationCard = document.createElement('div');
-      notificationCard.className = `notification-card ${notification.urgency === 'critical' ? 'urgent' : 
+      notificationCard.className = `notification-card ${notification.urgency === 'critical' ? 'urgent' :
                                    notification.type === 'maintenance' ? 'scheduled' : ''}`;
       
       const badgeClass = {
@@ -98,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
         maintenance: 'maintenance'
       }[notification.type];
       
-      const formattedTime = new Date(notification.time).toLocaleString();
+      const formattedTime = notification.timestamp ? new Date(notification.timestamp.toDate()).toLocaleString() : 'N/A';
       
       notificationCard.innerHTML = `
         <div class="notification-header">
@@ -119,20 +84,32 @@ document.addEventListener('DOMContentLoaded', function() {
       notificationsList.appendChild(notificationCard);
     });
     
-    // mark-read buttons
     document.querySelectorAll('.mark-read-btn').forEach(btn => {
       btn.addEventListener('click', function() {
-        const id = parseInt(this.getAttribute('data-id'));
-        const notification = notifications.find(n => n.id === id);
-        if (notification) {
-          notification.read = !notification.read;
-          renderNotifications(filterSelect.value);
-        }
+        const id = this.getAttribute('data-id');
+        db.collection("notifications").doc(id).update({
+          read: !btn.innerText.includes('Unread')
+        }).then(() => {
+          console.log("Document successfully updated!");
+        }).catch((error) => {
+          console.error("Error updating document: ", error);
+        });
       });
     });
   }
 
-  
+  // Real-time listener for Firestore collection
+  db.collection("notifications").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
+    const notifications = [];
+    snapshot.forEach((doc) => {
+      notifications.push({ id: doc.id, ...doc.data() });
+    });
+    renderNotifications(notifications, filterSelect.value);
+  }, (error) => {
+    console.error("Error fetching notifications: ", error);
+  });
+
+  // Event listeners for modal and form
   newNotificationBtn.addEventListener('click', () => {
     modal.style.display = 'block';
     document.body.classList.add('modal-open');
@@ -141,28 +118,34 @@ document.addEventListener('DOMContentLoaded', function() {
   closeModalBtn.addEventListener('click', () => {
     modal.style.display = 'none';
     document.body.classList.remove('modal-open');
+    notificationForm.reset();
+    selectedLines.innerHTML = '';
   });
 
   closeModalBtn2.addEventListener('click', () => {
     modal.style.display = 'none';
     document.body.classList.remove('modal-open');
+    notificationForm.reset();
+    selectedLines.innerHTML = '';
   });
 
   window.addEventListener('click', (event) => {
     if (event.target === modal) {
       modal.style.display = 'none';
       document.body.classList.remove('modal-open');
+      notificationForm.reset();
+      selectedLines.innerHTML = '';
     }
   });
 
-  
+  // Add line to form
   addLineBtn.addEventListener('click', () => {
     const line = lineSelect.options[lineSelect.selectedIndex].text;
     const value = lineSelect.value;
     
-    if (!document.querySelector(`.selected-train[data-value="${value}"]`)) {
+    if (!document.querySelector(`.selected-item[data-value="${value}"]`)) {
       const lineElement = document.createElement('div');
-      lineElement.className = 'selected-train';
+      lineElement.className = 'selected-item line-tag';
       lineElement.setAttribute('data-value', value);
       lineElement.innerHTML = `
         ${line}
@@ -176,90 +159,52 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // Submission Form
-  
+  // Form submission to Firebase
   notificationForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const selectedLineElements = document.querySelectorAll('.selected-train');
-    const lines = Array.from(selectedLineElements).map(el => el.textContent.trim().replace('×', ''));
+    const selectedLineElements = document.querySelectorAll('.selected-item');
+    const lines = Array.from(selectedLineElements).map(el => el.getAttribute('data-value'));
     
     const channels = Array.from(document.querySelectorAll('input[name="channels"]:checked'))
       .map(checkbox => checkbox.value);
     
     const urgency = document.querySelector('input[name="urgency"]:checked').value;
     
-    const newNotification = {
-      id: notifications.length + 1,
+    db.collection("notifications").add({
       type: document.getElementById('notification-type').value,
       title: document.getElementById('notification-title').value,
       message: document.getElementById('notification-message').value,
       lines,
       channels,
       urgency,
-      time: new Date().toISOString(),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       read: false
-    };
-    
-    notifications.unshift(newNotification);
-    renderNotifications(filterSelect.value);
-    
-    
-    notificationForm.reset();
-    selectedLines.innerHTML = '';
-    modal.style.display = 'none';
-    document.body.classList.remove('modal-open');
-    
-    
-    alert('Notification sent successfully!');
+    })
+    .then(() => {
+      alert('Notification sent successfully!');
+      notificationForm.reset();
+      selectedLines.innerHTML = '';
+      modal.style.display = 'none';
+      document.body.classList.remove('modal-open');
+    })
+    .catch((error) => {
+      console.error("Error sending notification: ", error);
+      alert('Error sending notification. Please try again.');
+    });
   });
 
-  
+  // Filter change listener
   filterSelect.addEventListener('change', () => {
-    renderNotifications(filterSelect.value);
-  });
-
-  
-  renderNotifications();
-
-});
-
-
-
-
-
-
-// In the admin page's notifications.js
-document.getElementById('notification-form').addEventListener('submit', function(e) {
-  e.preventDefault();
-  
-  // Get form values
-  const type = document.getElementById('notification-type').value;
-  const title = document.getElementById('notification-title').value;
-  const message = document.getElementById('notification-message').value;
-  const urgency = document.querySelector('input[name="urgency"]:checked').value;
-  
-  // Get selected lines
-  const lines = Array.from(document.querySelectorAll('#selected-lines .line-tag'))
-    .map(tag => tag.dataset.value);
-  
-  // Save to Firestore
-  db.collection("notifications").add({
-    type,
-    title,
-    message,
-    lines,
-    urgency,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(() => {
-    alert('Notification sent successfully!');
-    // Close modal and reset form
-    document.getElementById('notification-modal').style.display = 'none';
-    document.getElementById('notification-form').reset();
-  })
-  .catch((error) => {
-    console.error("Error sending notification: ", error);
-    alert('Error sending notification. Please try again.');
+    // The onSnapshot listener handles rendering automatically when data changes,
+    // so we just need to re-render with the new filter.
+    // We can fetch data again or use a local cache if we had one.
+    db.collection("notifications").orderBy("timestamp", "desc").get().then((querySnapshot) => {
+      const notifications = [];
+      querySnapshot.forEach((doc) => {
+        notifications.push({ id: doc.id, ...doc.data() });
+      });
+      renderNotifications(notifications, filterSelect.value);
+    });
   });
 });
