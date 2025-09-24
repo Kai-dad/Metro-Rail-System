@@ -51,6 +51,7 @@ function setupAuthStateListener() {
     if (user) {
       currentUser = user;
       showConnectionStatus('✅ Authenticated. Loading users...', 'connected');
+      updateUserLastSignIn(user.uid); // Update current user's sign-in time
       fetchUsers();
     } else {
       showConnectionStatus('🔒 Authentication required. Redirecting to login...', 'warning');
@@ -61,28 +62,86 @@ function setupAuthStateListener() {
   });
 }
 
-// Save or update user in Firestore on login
-auth.onAuthStateChanged(async (user) => {
-  if (user) {
-    const userRef = db.collection("users").doc(user.uid);
-    const doc = await userRef.get();
-
-    if (!doc.exists) {
-      await userRef.set({
-        email: user.email,
-        displayName: user.displayName || user.email,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastSignInTime: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'active'
-      });
-    } else {
-      await userRef.update({
-        lastSignInTime: firebase.firestore.FieldValue.serverTimestamp(),
-        status: 'active'
-      });
-    }
+// Update user's last sign-in time
+async function updateUserLastSignIn(uid) {
+  try {
+    const userRef = db.collection("users").doc(uid);
+    await userRef.set({
+      lastSignInTime: new Date(),
+      status: 'active'
+    }, { merge: true }); // merge: true to update without overwriting other fields
+    console.log(`Updated lastSignInTime for user ${uid}`);
+  } catch (error) {
+    console.error('Error updating last sign-in time:', error);
   }
-});
+}
+
+// Fix missing lastSignInTime for all users
+async function fixUserSignInTimes() {
+  try {
+    const snapshot = await db.collection('users').get();
+    const updates = [];
+    
+    snapshot.forEach(doc => {
+      const userData = doc.data();
+      // If lastSignInTime is missing or invalid, set it to createdAt or current time
+      if (!userData.lastSignInTime || isInvalidDate(userData.lastSignInTime)) {
+        const fixTime = userData.createdAt && !isInvalidDate(userData.createdAt) 
+          ? userData.createdAt 
+          : new Date();
+        
+        updates.push(
+          db.collection('users').doc(doc.id).set({
+            lastSignInTime: fixTime
+          }, { merge: true })
+        );
+      }
+    });
+    
+    await Promise.all(updates);
+    console.log(`Fixed sign-in times for ${updates.length} users`);
+  } catch (error) {
+    console.error('Error fixing sign-in times:', error);
+  }
+}
+
+// Check if a date is invalid (future date or malformed)
+function isInvalidDate(timestamp) {
+  try {
+    const date = convertTimestampToDate(timestamp);
+    if (!date) return true;
+    
+    const now = new Date();
+    // If date is more than 1 day in the future, consider it invalid
+    return date > new Date(now.getTime() + (24 * 60 * 60 * 1000));
+  } catch (e) {
+    return true;
+  }
+}
+
+// Convert Firestore timestamp to Date
+function convertTimestampToDate(timestamp) {
+  if (!timestamp) return null;
+  
+  try {
+    if (timestamp.toDate) {
+      return timestamp.toDate();
+    } else if (timestamp.seconds) {
+      return new Date(timestamp.seconds * 1000);
+    } else if (typeof timestamp === 'string') {
+      const date = new Date(timestamp);
+      return isNaN(date.getTime()) ? null : date;
+    } else if (timestamp instanceof Date) {
+      return timestamp;
+    } else {
+      const date = new Date(timestamp);
+      return isNaN(date.getTime()) ? null : date;
+    }
+  } catch (e) {
+    console.error('Error converting timestamp:', e, timestamp);
+    return null;
+  }
+}
 
 // Real-time fetch users
 async function fetchUsers() {
@@ -90,6 +149,9 @@ async function fetchUsers() {
     if (usersTableBody) {
       usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading users...</td></tr>';
     }
+
+    // First, fix any missing sign-in times
+    await fixUserSignInTimes();
 
     db.collection('users').onSnapshot(snapshot => {
       users = [];
@@ -111,7 +173,12 @@ async function fetchUsers() {
         });
       });
 
-      console.log('Fetched users:', users); // Debug log
+      console.log('Fetched users with timestamps:', users.map(u => ({
+        email: u.email,
+        lastSignInTime: u.lastSignInTime,
+        createdAt: u.createdAt
+      })));
+      
       renderUsers(users);
       showConnectionStatus(`✅ Connected. Loaded ${users.length} users.`, 'connected');
       if (searchInput) searchInput.disabled = false;
@@ -127,27 +194,7 @@ async function fetchUsers() {
   }
 }
 
-// Convert Firestore timestamp to Date
-function convertTimestampToDate(timestamp) {
-  if (!timestamp) return null;
-  
-  try {
-    if (timestamp.toDate) {
-      return timestamp.toDate();
-    } else if (timestamp.seconds) {
-      return new Date(timestamp.seconds * 1000);
-    } else if (typeof timestamp === 'string') {
-      return new Date(timestamp);
-    } else {
-      return new Date(timestamp);
-    }
-  } catch (e) {
-    console.error('Error converting timestamp:', e, timestamp);
-    return null;
-  }
-}
-
-// Render users with better status detection
+// Render users with improved status detection
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
 
@@ -166,34 +213,39 @@ function renderUsers(usersToRender) {
     if (user.createdAt) {
       try {
         const date = convertTimestampToDate(user.createdAt);
-        if (date) {
+        if (date && !isInvalidDate(date)) {
           createdAt = date.toLocaleDateString();
         }
       } catch (e) {
-        console.error('Error formatting creation date:', e, user.createdAt);
+        console.error('Error formatting creation date:', e);
       }
     }
 
-    // Status logic - IMPROVED VERSION
+    // Status logic - SIMPLIFIED AND MORE RELIABLE
     let statusBadge = '';
     const isCurrentUser = currentUser && user.id === currentUser.uid;
 
     if (isCurrentUser) {
       statusBadge = '<span class="status-badge status-current">Current User</span>';
     } else {
-      // Check last sign-in time with better error handling
+      // Get last sign-in date
       let lastSignInDate = null;
       if (user.lastSignInTime) {
         lastSignInDate = convertTimestampToDate(user.lastSignInTime);
-        console.log(`User ${user.email} lastSignIn:`, lastSignInDate, 'Raw:', user.lastSignInTime); // Debug
+      }
+      
+      // If no lastSignInTime, try using createdAt
+      if (!lastSignInDate && user.createdAt) {
+        lastSignInDate = convertTimestampToDate(user.createdAt);
       }
 
-      if (lastSignInDate) {
+      // Determine status based on available data
+      if (lastSignInDate && !isInvalidDate(lastSignInDate)) {
         const now = new Date();
         const diffTime = Math.abs(now - lastSignInDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        console.log(`User ${user.email} days since last sign-in:`, diffDays); // Debug
+        console.log(`User ${user.email}: ${diffDays} days since last activity`);
         
         if (diffDays <= 30) {
           statusBadge = '<span class="status-badge status-active">Active</span>';
@@ -201,9 +253,8 @@ function renderUsers(usersToRender) {
           statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
         }
       } else {
-        // No last sign-in time recorded
-        console.log(`User ${user.email} has no lastSignInTime`); // Debug
-        statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
+        // Default to active if we can't determine status
+        statusBadge = '<span class="status-badge status-active">Active</span>';
       }
     }
 
@@ -220,11 +271,26 @@ function renderUsers(usersToRender) {
         <button class="check-btn" onclick="checkAndDeleteUser('${user.id}', '${email}')">
           Check / Delete
         </button>
+        <button class="update-btn" onclick="updateUserSignInTime('${user.id}', '${email}')" style="margin-left: 5px; background-color: #28a745; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+          Update Sign-in
+        </button>
       </td>
     `;
 
     usersTableBody.appendChild(row);
   });
+}
+
+// Manual function to update a user's sign-in time
+async function updateUserSignInTime(uid, email) {
+  try {
+    await updateUserLastSignIn(uid);
+    alert(`Updated sign-in time for ${email} to current time.`);
+    fetchUsers(); // Refresh the list
+  } catch (error) {
+    console.error('Error updating sign-in time:', error);
+    alert('Error updating sign-in time: ' + error.message);
+  }
 }
 
 // Search users
@@ -251,7 +317,7 @@ function searchUsers() {
   renderUsers(filteredUsers);
 }
 
-// Check and delete user with better date handling
+// Check and delete user
 async function checkAndDeleteUser(uid, email) {
   try {
     const userDoc = await db.collection('users').doc(uid).get();
@@ -263,32 +329,30 @@ async function checkAndDeleteUser(uid, email) {
 
     const userData = userDoc.data();
     let lastSignInDate = null;
-    let inactive = true; // Default to inactive
-
+    
     if (userData.lastSignInTime) {
       lastSignInDate = convertTimestampToDate(userData.lastSignInTime);
+    }
+
+    let inactive = true;
+    if (lastSignInDate && !isInvalidDate(lastSignInDate)) {
+      const now = new Date();
+      const diffTime = Math.abs(now - lastSignInDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (lastSignInDate) {
-        const now = new Date();
-        const diffTime = Math.abs(now - lastSignInDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        console.log(`Check/Delete: User ${email} days since last sign-in:`, diffDays); // Debug
-        
-        if (diffDays <= 30) {
-          inactive = false; // Active if signed in within 30 days
-        }
+      if (diffDays <= 30) {
+        inactive = false;
       }
     }
 
     if (inactive) {
-      const confirmDelete = confirm(`User ${email} appears inactive (no recent sign-in). Do you want to delete this user?`);
+      const confirmDelete = confirm(`User ${email} appears inactive. Do you want to delete this user?`);
       if (confirmDelete) {
         await db.collection('users').doc(uid).delete();
         alert(`User ${email} has been deleted.`);
       }
     } else {
-      alert(`User ${email} is active (signed in within last 30 days).`);
+      alert(`User ${email} is active.`);
     }
   } catch (error) {
     console.error('Error checking/deleting user:', error);
@@ -335,3 +399,4 @@ window.fetchUsers = fetchUsers;
 window.checkAndDeleteUser = checkAndDeleteUser;
 window.searchUsers = searchUsers;
 window.renderUsers = renderUsers;
+window.updateUserSignInTime = updateUserSignInTime;
