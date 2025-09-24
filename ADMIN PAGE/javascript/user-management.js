@@ -158,10 +158,16 @@ function renderUsers(usersToRender) {
     } else {
       let inactive = false;
       if (user.lastSignInTime) {
-        const lastSignIn = new Date(user.lastSignInTime);
+        let lastSignIn;
+        if (user.lastSignInTime.toDate) {
+          lastSignIn = user.lastSignInTime.toDate(); // Firestore Timestamp
+        } else {
+          lastSignIn = new Date(user.lastSignInTime); // Plain Date
+        }
+
         const now = new Date();
         const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-        if (diffDays > 30) inactive = true;
+        if (diffDays > 3) inactive = true; // inactive if 3+ days
       } else {
         inactive = true; // never signed in
       }
@@ -226,13 +232,21 @@ async function checkAndDeleteUser(uid, email) {
     }
 
     const userData = userDoc.data();
-    const lastSignIn = userData.lastSignInTime ? new Date(userData.lastSignInTime) : null;
+    let lastSignIn = null;
+    if (userData.lastSignInTime) {
+      if (userData.lastSignInTime.toDate) {
+        lastSignIn = userData.lastSignInTime.toDate();
+      } else {
+        lastSignIn = new Date(userData.lastSignInTime);
+      }
+    }
+
     const now = new Date();
     let inactive = false;
 
     if (lastSignIn) {
       const diffDays = Math.floor((now - lastSignIn) / (1000 * 60 * 60 * 24));
-      if (diffDays > 30) inactive = true;
+      if (diffDays > 3) inactive = true; // inactive if 3+ days
     } else {
       inactive = true;
     }
