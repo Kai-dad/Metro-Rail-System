@@ -45,7 +45,7 @@ function showConnectionStatus(message, type = 'info') {
   }
 }
 
-// Authentication listener
+
 function setupAuthStateListener() {
   auth.onAuthStateChanged((user) => {
     if (user) {
@@ -69,14 +69,14 @@ async function updateUserLastSignIn(uid) {
     await userRef.set({
       lastSignInTime: new Date(),
       status: 'active'
-    }, { merge: true }); // merge: true to update without overwriting other fields
+    }, { merge: true }); 
     console.log(`Updated lastSignInTime for user ${uid}`);
   } catch (error) {
     console.error('Error updating last sign-in time:', error);
   }
 }
 
-// Fix missing lastSignInTime for all users
+// Fix missing last signIn tyme for all users
 async function fixUserSignInTimes() {
   try {
     const snapshot = await db.collection('users').get();
@@ -84,7 +84,7 @@ async function fixUserSignInTimes() {
     
     snapshot.forEach(doc => {
       const userData = doc.data();
-      // If lastSignInTime is missing or invalid, set it to createdAt or current time
+      
       if (!userData.lastSignInTime || isInvalidDate(userData.lastSignInTime)) {
         const fixTime = userData.createdAt && !isInvalidDate(userData.createdAt) 
           ? userData.createdAt 
@@ -105,7 +105,7 @@ async function fixUserSignInTimes() {
   }
 }
 
-// Check if a date is invalid (future date or malformed)
+// Check if a date is invalid 
 function isInvalidDate(timestamp) {
   try {
     const date = convertTimestampToDate(timestamp);
@@ -119,7 +119,7 @@ function isInvalidDate(timestamp) {
   }
 }
 
-// Convert Firestore timestamp to Date
+// this our Converts Firestore timestamp to Date
 function convertTimestampToDate(timestamp) {
   if (!timestamp) return null;
   
@@ -143,14 +143,12 @@ function convertTimestampToDate(timestamp) {
   }
 }
 
-// Real-time fetch users
+// Real-time fetching our users
 async function fetchUsers() {
   try {
     if (usersTableBody) {
       usersTableBody.innerHTML = '<tr><td colspan="6" class="loading">Loading users...</td></tr>';
     }
-
-    // First, fix any missing sign-in times
     await fixUserSignInTimes();
 
     db.collection('users').onSnapshot(snapshot => {
@@ -194,7 +192,7 @@ async function fetchUsers() {
   }
 }
 
-// Render users with improved status detection
+
 function renderUsers(usersToRender) {
   if (!usersTableBody) return;
 
@@ -221,7 +219,7 @@ function renderUsers(usersToRender) {
       }
     }
 
-    // Status logic - SIMPLIFIED AND MORE RELIABLE
+    // Status logic 
     let statusBadge = '';
     const isCurrentUser = currentUser && user.id === currentUser.uid;
 
@@ -253,7 +251,6 @@ function renderUsers(usersToRender) {
           statusBadge = '<span class="status-badge status-inactive">Inactive</span>';
         }
       } else {
-        // Default to active if we can't determine status
         statusBadge = '<span class="status-badge status-active">Active</span>';
       }
     }
@@ -293,7 +290,7 @@ async function updateUserSignInTime(uid, email) {
   }
 }
 
-// Search users
+// 4 Searching users
 function searchUsers() {
   if (!searchInput || !usersTableBody) return;
 
@@ -391,7 +388,6 @@ function initApp() {
   setupAuthStateListener();
 }
 
-// Start app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initApp);
 
 // Export functions to global scope
